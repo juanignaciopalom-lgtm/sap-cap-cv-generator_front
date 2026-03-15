@@ -1,0 +1,12 @@
+{
+  "name": "cv-viewer-ui",
+  "version": "0.0.1",
+  "private": true,
+  "devDependencies": {
+    "@sap/ux-ui5-tooling": "^1.20.4",
+    "@ui5/cli": "^4.0.48"
+  },
+  "scripts": {
+    "build": "ui5 build --config=ui5.yaml --clean-dest --dest dist && cd dist && zip -r ../cv-viewer-ui.zip ."
+  }
+}

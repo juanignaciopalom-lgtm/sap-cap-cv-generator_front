@@ -1,0 +1,414 @@
+<mvc:View
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:f="sap.f"
+    xmlns:grid="sap.ui.layout.cssgrid"
+    xmlns:l="sap.ui.layout"
+    xmlns:core="sap.ui.core"
+    controllerName="cv.viewer.cvviewer.controller.View1"
+    displayBlock="true"
+>
+    <Page
+        id="page"
+        showHeader="false"
+        backgroundDesign="Transparent"
+    >
+        <content>
+            <!--  ═══ HERO ═══  -->
+            <VBox class="cvSnapSection">
+                <VBox class="cvHero">
+                    <HBox
+                        class="cvHeroInner"
+                        alignItems="Center"
+                    >
+                        <VBox
+                            class="cvHeroPhoto"
+                            visible="{= !!${cv>/profile/photoUrl} }"
+                        >
+                            <f:Avatar
+                                src="{cv>/profile/photoUrl}"
+                                displaySize="XL"
+                                displayShape="Circle"
+                            />
+                        </VBox>
+                        <VBox class="cvHeroText">
+                            <Title
+                                text="{cv>/profile/firstName} {cv>/profile/lastName}"
+                                titleStyle="H1"
+                                class="cvName"
+                            />
+                            <Label
+                                text="{cv>/profile/title}"
+                                class="cvTitle"
+                            />
+                            <Text
+                                text="{cv>/profile/summary}"
+                                class="cvSummary"
+                            />
+                            <HBox
+                                class="cvInfoRow"
+                                wrap="Wrap"
+                            >
+                                <HBox
+                                    class="cvInfoChip"
+                                    visible="{= !!${cv>/profile/email} }"
+                                >
+                                    <core:Icon src="sap-icon://email" />
+                                    <Text
+                                        text="{cv>/profile/email}"
+                                        wrapping="true"
+                                    />
+                                </HBox>
+                                <HBox
+                                    class="cvInfoChip"
+                                    visible="{= !!${cv>/profile/phone} }"
+                                >
+                                    <core:Icon src="sap-icon://phone" />
+                                    <Text
+                                        text="{cv>/profile/phone}"
+                                        wrapping="true"
+                                    />
+                                </HBox>
+                                <HBox
+                                    class="cvInfoChip"
+                                    visible="{= !!${cv>/profile/location} }"
+                                >
+                                    <core:Icon src="sap-icon://map" />
+                                    <Text
+                                        text="{cv>/profile/location}"
+                                        wrapping="true"
+                                    />
+                                </HBox>
+                            </HBox>
+                            <HBox class="cvContactBar">
+                                <Button
+                                    icon="sap-icon://connected"
+                                    text="LinkedIn"
+                                    type="Transparent"
+                                    press="onLinkedIn"
+                                    visible="{= !!${cv>/profile/linkedinUrl} }"
+                                    class="cvContactBtn"
+                                />
+                                <Button
+                                    icon="sap-icon://source-code"
+                                    text="GitHub"
+                                    type="Transparent"
+                                    press="onGitHub"
+                                    visible="{= !!${cv>/profile/githubUrl} }"
+                                    class="cvContactBtn"
+                                />
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </VBox>
+
+            <!--  ═══ SKILLS ═══  -->
+            <VBox
+                class="cvSnapSection"
+                visible="{= ${cv>/skills}.length > 0 }"
+            >
+                <VBox class="cvSection">
+                    <Title
+                        text="Skills"
+                        class="cvSectionTitle"
+                    />
+                    <f:GridList
+                        id="gridSkills"
+                        items="{cv>/skills}"
+                        showSeparators="None"
+                        mode="None"
+                    >
+                        <f:customLayout>
+                            <grid:GridBoxLayout
+                                boxMinWidth="200px"
+                                boxesPerRowConfig="XL6 L4 M3 S2"
+                            />
+                        </f:customLayout>
+                        <f:items>
+                            <f:GridListItem>
+                                <VBox
+                                    class="cvSkillCard"
+                                    alignItems="Center"
+                                >
+                                    <Title
+                                        text="{cv>name}"
+                                        class="cvSkillName"
+                                    />
+                                    <Label
+                                        text="{cv>category}"
+                                        class="cvSkillCategory"
+                                    />
+                                    <RatingIndicator
+                                        value="{cv>level}"
+                                        maxValue="5"
+                                        editable="false"
+                                    />
+                                </VBox>
+                            </f:GridListItem>
+                        </f:items>
+                    </f:GridList>
+                </VBox>
+            </VBox>
+
+            <!--  ═══ EXPERIENCIA ═══  -->
+            <VBox
+                class="cvSnapSection"
+                visible="{= ${cv>/experiences}.length > 0 }"
+            >
+                <VBox class="cvSection">
+                    <Title
+                        text="Experiencia"
+                        class="cvSectionTitle"
+                    />
+                    <List
+                        showSeparators="None"
+                        items="{cv>/experiences}"
+                    >
+                        <items>
+                            <CustomListItem>
+                                <VBox class="cvExpCard">
+                                    <HBox justifyContent="SpaceBetween">
+                                        <VBox>
+                                            <Title
+                                                text="{cv>role}"
+                                                class="cvExpRole"
+                                            />
+                                            <Label
+                                                text="{cv>company}"
+                                                class="cvExpCompany"
+                                            />
+                                        </VBox>
+                                        <VBox alignItems="End">
+                                            <Label
+                                                text="{cv>startDate}"
+                                                class="cvExpDate"
+                                                visible="{= !!${cv>startDate} }"
+                                            />
+                                            <Label
+                                                text="{cv>location}"
+                                                class="cvExpLocation"
+                                                visible="{= !!${cv>location} }"
+                                            />
+                                        </VBox>
+                                    </HBox>
+                                    <Text
+                                        text="{cv>description}"
+                                        class="cvExpDesc"
+                                        visible="{= !!${cv>description} }"
+                                    />
+                                    <Label
+                                        text="{cv>technologies}"
+                                        class="cvExpTech"
+                                        visible="{= !!${cv>technologies} }"
+                                    />
+                                </VBox>
+                            </CustomListItem>
+                        </items>
+                    </List>
+                </VBox>
+            </VBox>
+
+            <!--  ═══ PROYECTOS ═══  -->
+            <VBox
+                class="cvSnapSection"
+                visible="{= ${cv>/projects}.length > 0 }"
+            >
+                <VBox class="cvSection">
+                    <Title
+                        text="Proyectos"
+                        class="cvSectionTitle"
+                    />
+                    <f:GridList
+                        id="gridProjects"
+                        items="{cv>/projects}"
+                        showSeparators="None"
+                        mode="None"
+                    >
+                        <f:customLayout>
+                            <grid:GridBoxLayout
+                                boxMinWidth="280px"
+                                boxesPerRowConfig="XL3 L2 M2 S1"
+                            />
+                        </f:customLayout>
+                        <f:items>
+                            <f:GridListItem>
+                                <VBox class="cvProjectCard">
+                                    <Image
+                                        src="{cv>imageUrl}"
+                                        class="cvProjectImg"
+                                        visible="{= !!${cv>imageUrl} }"
+                                        decorative="false"
+                                        alt="{cv>name}"
+                                    />
+                                    <VBox class="cvProjectBody">
+                                        <Title
+                                            text="{cv>name}"
+                                            class="cvProjectName"
+                                        />
+                                        <Text
+                                            text="{cv>description}"
+                                            class="cvProjectDesc"
+                                            visible="{= !!${cv>description} }"
+                                        />
+                                        <Label
+                                            text="{cv>technologies}"
+                                            class="cvProjectTech"
+                                            visible="{= !!${cv>technologies} }"
+                                        />
+                                        <Button
+                                            text="Ver proyecto"
+                                            icon="sap-icon://chain-link"
+                                            type="Transparent"
+                                            class="cvProjectLink"
+                                            visible="{= !!${cv>projectUrl} }"
+                                            press="onOpenProject"
+                                        />
+                                    </VBox>
+                                </VBox>
+                            </f:GridListItem>
+                        </f:items>
+                    </f:GridList>
+                </VBox>
+            </VBox>
+
+            <!--  ═══ EDUCACIÓN Y CERTIFICACIONES ═══  -->
+            <VBox
+                class="cvSnapSection"
+                visible="{= ${cv>/education}.length > 0 || ${cv>/certifications}.length > 0 }"
+            >
+                <HBox
+                    justifyContent="SpaceAround"
+                    wrap="Wrap"
+                    class="cvSection"
+                >
+                    <VBox
+                        class="cvSubSection"
+                        visible="{= ${cv>/education}.length > 0 }"
+                    >
+                        <Title
+                            text="Educación"
+                            class="cvSectionTitle"
+                        />
+                        <List
+                            showSeparators="None"
+                            items="{cv>/education}"
+                        >
+                            <items>
+                                <CustomListItem>
+                                    <VBox class="cvEduCard">
+                                        <Title
+                                            text="{cv>degree}"
+                                            class="cvEduDegree"
+                                        />
+                                        <Label
+                                            text="{cv>institution}"
+                                            class="cvEduInstitution"
+                                            visible="{= !!${cv>institution} }"
+                                        />
+                                        <Label
+                                            text="{cv>startYear} — {cv>endYear}"
+                                            class="cvEduYear"
+                                            visible="{= !!${cv>startYear} }"
+                                        />
+                                    </VBox>
+                                </CustomListItem>
+                            </items>
+                        </List>
+                    </VBox>
+                    <VBox
+                        class="cvSubSection"
+                        visible="{= ${cv>/certifications}.length > 0 }"
+                    >
+                        <Title
+                            text="Certificaciones"
+                            class="cvSectionTitle"
+                        />
+                        <List
+                            showSeparators="None"
+                            items="{cv>/certifications}"
+                        >
+                            <items>
+                                <CustomListItem>
+                                    <VBox class="cvCertCard">
+                                        <Title
+                                            text="{cv>name}"
+                                            class="cvCertName"
+                                        />
+                                        <Label
+                                            text="{cv>issuingOrg}"
+                                            class="cvCertOrg"
+                                            visible="{= !!${cv>issuingOrg} }"
+                                        />
+                                        <Label
+                                            text="{cv>issueYear}"
+                                            class="cvCertYear"
+                                            visible="{= !!${cv>issueYear} }"
+                                        />
+                                    </VBox>
+                                </CustomListItem>
+                            </items>
+                        </List>
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!--  ═══ IDIOMAS ═══  -->
+            <VBox
+                class="cvSnapSection"
+                visible="{= ${cv>/languages}.length > 0 }"
+            >
+                <VBox
+                    class="cvSection"
+                    alignItems="Center"
+                >
+                    <Title
+                        text="Idiomas"
+                        class="cvSectionTitle"
+                    />
+                    <FlexBox
+                        wrap="Wrap"
+                        justifyContent="Center"
+                        items="{cv>/languages}"
+                    >
+                        <items>
+                            <FlexBox>
+                                <VBox
+                                    class="cvLangCard"
+                                    alignItems="Center"
+                                >
+                                    <Title
+                                        text="{cv>language}"
+                                        class="cvLangName"
+                                    />
+                                    <Label
+                                        text="{cv>proficiency}"
+                                        class="cvLangLevel"
+                                        visible="{= !!${cv>proficiency} }"
+                                    />
+                                </VBox>
+                            </FlexBox>
+                        </items>
+                    </FlexBox>
+                </VBox>
+            </VBox>
+
+            <!--  ═══ FOOTER ═══  -->
+            <VBox
+                class="cvSnapSection"
+                alignItems="Center"
+                justifyContent="Center"
+            >
+                <VBox
+                    alignItems="Center"
+                    class="cvFooter"
+                >
+                    <Label
+                        text="Construido con SAP BTP · CAP · SAPUI5"
+                        class="cvFooterText"
+                    />
+                </VBox>
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

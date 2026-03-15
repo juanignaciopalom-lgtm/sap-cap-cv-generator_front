@@ -1,0 +1,68 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.ui.layout.form"
+    xmlns:l="sap.ui.layout">
+
+    <VBox class="sapUiMediumMargin">
+
+        <Title text="👤 Datos Personales" level="H3" class="sapUiSmallMarginBottom"/>
+
+        <f:SimpleForm
+            id="formProfile"
+            editable="true"
+            layout="ResponsiveGridLayout"
+            labelSpanXL="3" labelSpanL="3" labelSpanM="4" labelSpanS="12"
+            adjustLabelSpan="false"
+            emptySpanXL="1" emptySpanL="1" emptySpanM="0" emptySpanS="0"
+            columnsXL="2" columnsL="2" columnsM="1"
+            singleContainerFullSize="false">
+
+            <f:content>
+                <Label text="Nombre *" required="true"/>
+                <Input value="{wizard>/profile/firstName}" placeholder="Juan" liveChange=".onProfileChange"/>
+
+                <Label text="Apellido *" required="true"/>
+                <Input value="{wizard>/profile/lastName}" placeholder="Pérez" liveChange=".onProfileChange"/>
+
+                <Label text="Título profesional *" required="true"/>
+                <Input value="{wizard>/profile/title}" placeholder="SAP ABAP Developer" liveChange=".onProfileChange"/>
+
+                <Label text="Email *" required="true"/>
+                <Input value="{wizard>/profile/email}" placeholder="juan@email.com" type="Email" liveChange=".onProfileChange"/>
+
+                <Label text="Teléfono"/>
+                <Input value="{wizard>/profile/phone}" placeholder="+54 11 1234-5678" type="Tel"/>
+
+                <Label text="Ubicación"/>
+                <Input value="{wizard>/profile/location}" placeholder="Buenos Aires, Argentina"/>
+
+                <Label text="LinkedIn URL"/>
+                <Input value="{wizard>/profile/linkedinUrl}" placeholder="https://linkedin.com/in/tu-perfil" type="Url"/>
+
+                <Label text="GitHub URL"/>
+                <Input value="{wizard>/profile/githubUrl}" placeholder="https://github.com/tu-usuario" type="Url"/>
+
+                <Label text="Foto URL"/>
+                <Input value="{wizard>/profile/photoUrl}" placeholder="https://tu-foto.com/foto.jpg" type="Url"/>
+            </f:content>
+        </f:SimpleForm>
+
+        <VBox class="sapUiSmallMarginTop">
+            <Label text="Resumen profesional" class="sapUiSmallMarginBottom"/>
+            <TextArea
+                value="{wizard>/profile/summary}"
+                placeholder="Describí tu perfil profesional en pocas líneas..."
+                rows="5"
+                growing="true"
+                width="100%"/>
+        </VBox>
+
+        <VBox class="sapUiSmallMarginTop" visible="{= !!${wizard>/profile/photoUrl} }">
+            <Title text="Preview" level="H5" class="sapUiSmallMarginBottom"/>
+            <Avatar src="{wizard>/profile/photoUrl}" displaySize="XL" displayShape="Circle"/>
+        </VBox>
+
+    </VBox>
+
+</core:FragmentDefinition>

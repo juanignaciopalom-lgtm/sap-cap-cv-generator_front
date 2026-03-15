@@ -1,0 +1,62 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <VBox class="sapUiMediumMargin">
+
+        <Toolbar>
+            <Title text="🛠️ Skills" level="H3"/>
+            <ToolbarSpacer/>
+            <Button
+                text="Agregar Skill"
+                icon="sap-icon://add"
+                type="Emphasized"
+                press=".onAddItem">
+                <customData>
+                    <core:CustomData key="entity" value="skills"/>
+                </customData>
+            </Button>
+        </Toolbar>
+
+        <Table
+            id="tableSkills"
+            items="{wizard>/skills}"
+            noDataText="No hay skills cargados. Hacé clic en 'Agregar Skill'."
+            mode="None">
+
+            <columns>
+                <Column width="35%"><Text text="Nombre"/></Column>
+                <Column width="35%"><Text text="Categoría"/></Column>
+                <Column width="20%"><Text text="Nivel (1-5)"/></Column>
+                <Column width="10%" hAlign="Center"><Text text=""/></Column>
+            </columns>
+
+            <items>
+                <ColumnListItem vAlign="Middle">
+                    <cells>
+                        <Input value="{wizard>name}" placeholder="Ej: ABAP, CAP, Fiori..." liveChange=".onItemChange"/>
+
+                        <Select selectedKey="{wizard>category}" change=".onItemChange">
+                            <core:Item key="" text="-- Seleccionar --"/>
+                            <core:Item key="Backend" text="Backend"/>
+                            <core:Item key="Frontend" text="Frontend"/>
+                            <core:Item key="SAP" text="SAP"/>
+                            <core:Item key="Cloud" text="Cloud"/>
+                            <core:Item key="Database" text="Database"/>
+                            <core:Item key="DevOps" text="DevOps"/>
+                            <core:Item key="Soft Skill" text="Soft Skill"/>
+                            <core:Item key="Other" text="Other"/>
+                        </Select>
+
+                        <StepInput value="{wizard>level}" min="1" max="5" step="1" validationMode="LiveChange" change=".onItemChange"/>
+
+                        <Button icon="sap-icon://delete" type="Reject" press=".onDeleteItem" tooltip="Eliminar"/>
+                    </cells>
+                </ColumnListItem>
+            </items>
+
+        </Table>
+
+    </VBox>
+
+</core:FragmentDefinition>

@@ -1,0 +1,61 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <VBox class="sapUiMediumMargin">
+
+        <Toolbar>
+            <Title text="🌐 Idiomas" level="H3"/>
+            <ToolbarSpacer/>
+            <Button
+                text="Agregar Idioma"
+                icon="sap-icon://add"
+                type="Emphasized"
+                press=".onAddItem">
+                <customData>
+                    <core:CustomData key="entity" value="languages"/>
+                </customData>
+            </Button>
+        </Toolbar>
+
+        <Table
+            id="tableLanguages"
+            items="{wizard>/languages}"
+            noDataText="No hay idiomas cargados. Hacé clic en 'Agregar Idioma'."
+            mode="None">
+
+            <columns>
+                <Column width="40%"><Text text="Idioma"/></Column>
+                <Column width="40%"><Text text="Nivel"/></Column>
+                <Column width="20%" hAlign="Center"><Text text=""/></Column>
+            </columns>
+
+            <items>
+                <ColumnListItem vAlign="Middle">
+                    <cells>
+                        <Input value="{wizard>language}" placeholder="Ej: Español, Inglés, Portugués" liveChange=".onItemChange"/>
+
+                        <Select selectedKey="{wizard>proficiency}" change=".onItemChange">
+                            <core:Item key="" text="-- Seleccionar --"/>
+                            <core:Item key="Nativo" text="Nativo"/>
+                            <core:Item key="Avanzado" text="Avanzado (C1/C2)"/>
+                            <core:Item key="Intermedio" text="Intermedio (B1/B2)"/>
+                            <core:Item key="Básico" text="Básico (A1/A2)"/>
+                        </Select>
+
+                        <Button icon="sap-icon://delete" type="Reject" press=".onDeleteItem" tooltip="Eliminar"/>
+                    </cells>
+                </ColumnListItem>
+            </items>
+
+        </Table>
+
+        <VBox class="sapUiLargeMarginTop" alignItems="Center">
+            <core:Icon src="sap-icon://accept" size="3rem" color="Positive" class="sapUiSmallMarginBottom"/>
+            <Title text="¡Todo listo para guardar tu CV! 🎉" level="H4" textAlign="Center"/>
+            <Text text="Revisá los datos y hacé clic en 'Finalizar' para guardar todo." textAlign="Center" class="sapUiSmallMarginTop"/>
+        </VBox>
+
+    </VBox>
+
+</core:FragmentDefinition>

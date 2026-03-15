@@ -1,0 +1,523 @@
+/* ─── GLOBAL ───────────────────────────────────────────── */
+
+html,
+body {
+    background-color: #f3f5f9 !important;
+    margin: 0;
+    padding: 0;
+}
+
+.sapMPage,
+.sapMPageBgTransparent,
+.sapMPageBgSolid {
+    background-color: #f3f5f9 !important;
+}
+
+/* ─── SNAP SECTION ────────────────────────────────────── */
+
+.cvSnapSection {
+    box-sizing: border-box;
+}
+
+/* ─── ANCHO GENERAL DE CONTENIDO ─────────────────────── */
+
+.cvHero,
+.cvSection,
+.cvFooter {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 92%;
+    box-sizing: border-box;
+}
+
+/* ─── HERO ────────────────────────────────────────────── */
+
+.cvHero {
+    padding: 50px 60px;
+    margin-top: 24px;
+    margin-bottom: 24px;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.cvHeroInner {
+    display: flex;
+    align-items: center;
+    gap: 48px;
+}
+
+.cvHeroPhoto {
+    flex-shrink: 0;
+}
+
+.cvHeroPhoto .sapFAvatar {
+    width: 140px !important;
+    height: 140px !important;
+    border-radius: 50% !important;
+    border: 4px solid #2563eb !important;
+}
+
+.cvHeroText {
+    flex: 1;
+    text-align: left;
+    min-width: 0;
+}
+
+.cvName {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+}
+
+.cvName.sapMTitle {
+    color: #0f172a !important;
+    font-size: clamp(1.9rem, 5vw, 2.6rem) !important;
+    font-weight: 800 !important;
+    line-height: 1.1 !important;
+
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+}
+
+.cvName.sapMTitle span,
+.cvName.sapMTitle bdi {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+}
+
+.cvTitle .sapMLabel {
+    color: #2563eb !important;
+    font-size: 1.1rem !important;
+    margin-top: 8px;
+    letter-spacing: 1px;
+    display: block;
+}
+
+.cvSummary .sapMText {
+    color: #4b5563 !important;
+    font-size: 0.97rem !important;
+    line-height: 1.8 !important;
+    margin-top: 14px;
+    display: block;
+}
+
+/* ─── HERO INFO ROW ───────────────────────────────────── */
+
+.cvInfoRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    align-items: center;
+}
+
+.cvInfoChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f0f6ff;
+    border: 1px solid #dbeafe;
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: clamp(0.75rem, 2vw, 0.85rem);
+    color: #1e40af;
+    white-space: normal;
+    max-width: 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.cvInfoChip .sapUiIcon {
+    color: #2563eb !important;
+    font-size: 0.85rem !important;
+    flex-shrink: 0;
+}
+
+.cvInfoChip .sapMText {
+    color: #1e40af !important;
+    font-size: inherit !important;
+    line-height: 1.35 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    min-width: 0;
+}
+
+/* ─── CONTACT BAR ─────────────────────────────────────── */
+
+.cvContactBar {
+    margin-top: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.cvContactBtn.sapMBtn .sapMBtnInner {
+    color: #2563eb !important;
+    border: 1px solid #2563eb !important;
+    border-radius: 24px !important;
+    background: #f8fbff !important;
+    font-size: 0.88rem !important;
+    padding: 6px 16px;
+    height: auto !important;
+    white-space: nowrap;
+}
+
+/* ─── SECTIONS ────────────────────────────────────────── */
+
+.cvSection {
+    padding: 32px 0 16px 0;
+}
+
+.cvSectionTitle .sapMTitle {
+    color: #0f172a !important;
+    font-size: 1.6rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 20px !important;
+    border-bottom: 3px solid #2563eb;
+    padding-bottom: 10px;
+    display: inline-block;
+}
+
+/* ─── SKILLS GRID ─────────────────────────────────────── */
+
+.cvSkillCard {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 14px 18px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    transition: transform .15s;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.cvSkillCard:hover {
+    transform: translateY(-2px);
+}
+
+/* GridListItem reset */
+.sapFGridListItem {
+    padding: 8px !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    box-sizing: border-box !important;
+}
+
+.cvSkillName .sapMTitle {
+    color: #0f172a !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+}
+
+.cvSkillCategory .sapMLabel {
+    color: #2563eb !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    display: block;
+}
+
+/* ─── EXPERIENCE ──────────────────────────────────────── */
+
+.cvExpCard {
+    background: #ffffff;
+    border-left: 5px solid #2563eb;
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.cvExpRole .sapMTitle {
+    color: #0f172a !important;
+    font-size: 1.15rem !important;
+    font-weight: 700 !important;
+}
+
+.cvExpCompany .sapMLabel {
+    color: #2563eb !important;
+    font-size: 0.95rem !important;
+}
+
+.cvExpDate .sapMLabel,
+.cvExpLocation .sapMLabel {
+    color: #9ca3af !important;
+    font-size: 0.85rem !important;
+}
+
+.cvExpDesc .sapMText {
+    color: #374151 !important;
+    line-height: 1.7 !important;
+    margin-top: 12px !important;
+    font-size: 0.92rem !important;
+}
+
+.cvExpTech .sapMLabel {
+    color: #2563eb !important;
+    font-size: 0.8rem !important;
+    margin-top: 10px !important;
+    font-style: italic;
+    display: block;
+}
+
+/* ─── PROJECTS GRID ───────────────────────────────────── */
+
+.cvProjectCard {
+    background: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+    transition: transform .15s;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+}
+
+.cvProjectCard:hover {
+    transform: translateY(-3px);
+}
+
+.cvProjectImg.sapMImg {
+    width: 100% !important;
+    height: 180px !important;
+    display: block;
+}
+
+.cvProjectImg .sapMImgInner {
+    width: 100% !important;
+    height: 180px !important;
+    object-fit: cover !important;
+    border-radius: 10px 10px 0 0;
+}
+
+.cvProjectBody {
+    padding: 20px 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.cvProjectName .sapMTitle {
+    color: #0f172a !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+}
+
+.cvProjectDesc .sapMText {
+    color: #4b5563 !important;
+    line-height: 1.7 !important;
+    margin-top: 10px !important;
+    font-size: 0.9rem !important;
+    flex: 1;
+}
+
+.cvProjectTech .sapMLabel {
+    color: #2563eb !important;
+    font-size: 0.8rem !important;
+    margin-top: 12px !important;
+    font-style: italic;
+    display: block;
+}
+
+.cvProjectLink.sapMBtn .sapMBtnInner {
+    color: #2563eb !important;
+    border: none !important;
+    background: transparent !important;
+    font-size: 0.82rem !important;
+    padding: 4px 0 0 0;
+}
+
+#gridProjects {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 4px;
+}
+
+#gridProjects .sapFGridListDefault {
+    padding: 0 !important;
+}
+
+#gridProjects .sapFGridListItem {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* ─── EDUCATION / CERTIFICATIONS ──────────────────────── */
+
+.cvSubSection {
+    min-width: 280px;
+    flex: 1;
+    padding: 0 20px;
+}
+
+.cvEduCard,
+.cvCertCard {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+}
+
+.cvEduDegree .sapMTitle,
+.cvCertName .sapMTitle {
+    color: #0f172a !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+}
+
+.cvEduInstitution .sapMLabel,
+.cvCertOrg .sapMLabel {
+    color: #2563eb !important;
+    font-size: 0.9rem !important;
+    display: block;
+}
+
+.cvEduYear .sapMLabel,
+.cvCertYear .sapMLabel {
+    color: #9ca3af !important;
+    font-size: 0.82rem !important;
+    display: block;
+    margin-top: 4px;
+}
+
+/* ─── LANGUAGES ───────────────────────────────────────── */
+
+.cvLangCard {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 16px 24px;
+    margin: 8px;
+    min-width: 160px;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.cvLangName .sapMTitle {
+    color: #0f172a !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+}
+
+.cvLangLevel .sapMLabel {
+    color: #2563eb !important;
+    font-size: 0.82rem !important;
+    display: block;
+    margin-top: 4px;
+}
+
+/* ─── SAPUI5 LIST / GRID FIX ──────────────────────────── */
+
+.sapMListBGTransparent,
+.sapMLIB,
+.sapMListItems .sapMLIB {
+    background-color: transparent !important;
+    border-bottom: none !important;
+}
+
+.sapMList {
+    background-color: transparent !important;
+}
+
+/* ─── FOOTER (CORREGIDO RESPONSIVE) ───────────────────── */
+
+.cvFooter {
+    padding: 32px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.cvFooterInner {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+}
+
+.cvFooterText .sapMLabel {
+    color: #9ca3af !important;
+    font-size: 0.85rem !important;
+}
+
+/* ─── HERO RESPONSIVE FIX ─────────────────────────────── */
+
+@media (max-width: 900px) {
+
+    .cvHeroInner.sapMHBox {
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+
+    .cvHeroInner.sapMFlexBox {
+        flex-wrap: wrap !important;
+    }
+
+    .cvHeroPhoto {
+        display: flex;
+        justify-content: center;
+    }
+
+    .cvHeroText {
+        text-align: center;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .cvInfoRow {
+        justify-content: center;
+    }
+
+    .cvContactBar {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 600px) {
+    .cvHero {
+        padding: 32px 20px;
+    }
+
+    .cvName.sapMTitle {
+        font-size: clamp(1.6rem, 8vw, 2.1rem) !important;
+    }
+
+    .cvSummary .sapMText {
+        font-size: 0.92rem !important;
+        line-height: 1.6 !important;
+    }
+
+    #gridProjects {
+        padding: 0 !important;
+    }
+
+    #gridProjects .sapFGridListItem {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}

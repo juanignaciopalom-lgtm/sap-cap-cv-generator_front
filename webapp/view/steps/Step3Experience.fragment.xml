@@ -1,0 +1,85 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <VBox class="sapUiMediumMargin">
+
+        <Toolbar>
+            <Title text="💼 Experiencia Laboral" level="H3"/>
+            <ToolbarSpacer/>
+            <Button
+                text="Agregar Experiencia"
+                icon="sap-icon://add"
+                type="Emphasized"
+                press=".onAddItem">
+                <customData>
+                    <core:CustomData key="entity" value="experiences"/>
+                </customData>
+            </Button>
+        </Toolbar>
+
+        <List
+            id="listExperiences"
+            items="{wizard>/experiences}"
+            noDataText="No hay experiencias cargadas. Hacé clic en 'Agregar Experiencia'.">
+
+            <CustomListItem>
+                <VBox class="sapUiSmallMargin">
+
+                    <FlexBox wrap="Wrap" class="sapUiSmallMarginBottom">
+                        <VBox class="sapUiSmallMarginEnd" width="48%">
+                            <Label text="Empresa *"/>
+                            <Input value="{wizard>company}" placeholder="Ej: SAP SE" liveChange=".onItemChange"/>
+                        </VBox>
+                        <VBox width="48%">
+                            <Label text="Rol / Puesto *"/>
+                            <Input value="{wizard>role}" placeholder="Ej: SAP ABAP Developer" liveChange=".onItemChange"/>
+                        </VBox>
+                    </FlexBox>
+
+                    <FlexBox wrap="Wrap" class="sapUiSmallMarginBottom">
+                        <VBox class="sapUiSmallMarginEnd" width="48%">
+                            <Label text="Ubicación"/>
+                            <Input value="{wizard>location}" placeholder="Ej: Buenos Aires, Argentina" liveChange=".onItemChange"/>
+                        </VBox>
+                        <VBox width="48%">
+                            <Label text="¿Trabajo actual?"/>
+                            <CheckBox selected="{wizard>current}" text="Sí, trabajo aquí actualmente" select=".onItemChange"/>
+                        </VBox>
+                    </FlexBox>
+
+                    <FlexBox wrap="Wrap" class="sapUiSmallMarginBottom">
+                        <VBox class="sapUiSmallMarginEnd" width="48%">
+                            <Label text="Fecha inicio *"/>
+                            <DatePicker value="{wizard>startDate}" valueFormat="yyyy-MM-dd" displayFormat="MMM yyyy" placeholder="Seleccionar fecha" change=".onItemChange"/>
+                        </VBox>
+                        <VBox width="48%">
+                            <Label text="Fecha fin"/>
+                            <DatePicker value="{wizard>endDate}" valueFormat="yyyy-MM-dd" displayFormat="MMM yyyy" placeholder="Dejar vacío si es actual" enabled="{= !${wizard>current} }" change=".onItemChange"/>
+                        </VBox>
+                    </FlexBox>
+
+                    <VBox class="sapUiSmallMarginBottom">
+                        <Label text="Tecnologías utilizadas"/>
+                        <Input value="{wizard>technologies}" placeholder="Ej: ABAP, BTP, CAP, Fiori, HANA" liveChange=".onItemChange"/>
+                    </VBox>
+
+                    <VBox class="sapUiSmallMarginBottom">
+                        <Label text="Descripción"/>
+                        <TextArea value="{wizard>description}" placeholder="Describí tus responsabilidades y logros..." rows="3" growing="true" width="100%" liveChange=".onItemChange"/>
+                    </VBox>
+
+                    <FlexBox justifyContent="End">
+                        <Button text="Eliminar" icon="sap-icon://delete" type="Reject" press=".onDeleteItem"/>
+                    </FlexBox>
+
+                    <core:HTML content="&lt;hr style='border:none; border-top:1px solid #e0e0e0; margin-top:8px'/&gt;"/>
+
+                </VBox>
+            </CustomListItem>
+
+        </List>
+
+    </VBox>
+
+</core:FragmentDefinition>

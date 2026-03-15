@@ -1,0 +1,73 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <VBox class="sapUiMediumMargin">
+
+        <Toolbar>
+            <Title text="🚀 Proyectos" level="H3"/>
+            <ToolbarSpacer/>
+            <Button
+                text="Agregar Proyecto"
+                icon="sap-icon://add"
+                type="Emphasized"
+                press=".onAddItem">
+                <customData>
+                    <core:CustomData key="entity" value="projects"/>
+                </customData>
+            </Button>
+        </Toolbar>
+
+        <List
+            id="listProjects"
+            items="{wizard>/projects}"
+            noDataText="No hay proyectos cargados. Hacé clic en 'Agregar Proyecto'.">
+
+            <CustomListItem>
+                <VBox class="sapUiSmallMargin">
+
+                    <VBox class="sapUiSmallMarginBottom">
+                        <Label text="Nombre del proyecto *"/>
+                        <Input value="{wizard>name}" placeholder="Ej: CV Interactivo BTP" liveChange=".onItemChange"/>
+                    </VBox>
+
+                    <VBox class="sapUiSmallMarginBottom">
+                        <Label text="Tecnologías"/>
+                        <Input value="{wizard>technologies}" placeholder="Ej: CAP, SAPUI5, HANA, BTP" liveChange=".onItemChange"/>
+                    </VBox>
+
+                    <FlexBox wrap="Wrap" class="sapUiSmallMarginBottom">
+                        <VBox class="sapUiSmallMarginEnd" width="48%">
+                            <Label text="URL del proyecto"/>
+                            <Input value="{wizard>projectUrl}" placeholder="https://github.com/tu-proyecto" type="Url" liveChange=".onItemChange"/>
+                        </VBox>
+                        <VBox width="48%">
+                            <Label text="URL de imagen"/>
+                            <Input value="{wizard>imageUrl}" placeholder="https://imagen.com/preview.png" type="Url" liveChange=".onItemChange"/>
+                        </VBox>
+                    </FlexBox>
+
+                    <VBox class="sapUiSmallMarginBottom">
+                        <Label text="Descripción"/>
+                        <TextArea value="{wizard>description}" placeholder="Describí el proyecto, tu rol y el impacto..." rows="3" growing="true" width="100%" liveChange=".onItemChange"/>
+                    </VBox>
+
+                    <VBox class="sapUiSmallMarginBottom" visible="{= !!${wizard>imageUrl} }">
+                        <Label text="Preview imagen"/>
+                        <Image src="{wizard>imageUrl}" width="200px" height="120px" decorative="false" alt="{wizard>name}" class="sapUiSmallMarginTop"/>
+                    </VBox>
+
+                    <FlexBox justifyContent="End">
+                        <Button text="Eliminar" icon="sap-icon://delete" type="Reject" press=".onDeleteItem"/>
+                    </FlexBox>
+
+                    <core:HTML content="&lt;hr style='border:none; border-top:1px solid #e0e0e0; margin-top:8px'/&gt;"/>
+
+                </VBox>
+            </CustomListItem>
+
+        </List>
+
+    </VBox>
+
+</core:FragmentDefinition>

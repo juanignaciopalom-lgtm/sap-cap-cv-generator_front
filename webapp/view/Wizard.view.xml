@@ -1,0 +1,133 @@
+<mvc:View
+    controllerName="cv.viewer.cvviewer.controller.Wizard"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:f="sap.ui.layout.form"
+    xmlns:core="sap.ui.core"
+    displayBlock="true">
+
+    <Page
+        id="wizardPage"
+        title="Editor de CV"
+        showNavButton="false"
+        backgroundDesign="Solid"
+        showFooter="true">
+
+        <content>
+            <Wizard
+                id="wizard"
+                showNextButton="false"
+                stepActivate=".onStepActivate"
+                complete=".onWizardComplete">
+
+                <!-- ═══ PASO 1: PERFIL ═══ -->
+                <WizardStep
+                    id="stepProfile"
+                    title="Perfil"
+                    icon="sap-icon://person-placeholder"
+                    complete="false">
+                    <core:Fragment
+                        fragmentName="cv.viewer.cvviewer.view.steps.Step1Profile"
+                        type="XML"/>
+                </WizardStep>
+
+                <!-- ═══ PASO 2: SKILLS ═══ -->
+                <WizardStep
+                    id="stepSkills"
+                    title="Skills"
+                    icon="sap-icon://learning-assistant"
+                    complete="false">
+                    <core:Fragment
+                        fragmentName="cv.viewer.cvviewer.view.steps.Step2Skills"
+                        type="XML"/>
+                </WizardStep>
+
+                <!-- ═══ PASO 3: EXPERIENCIA ═══ -->
+                <WizardStep
+                    id="stepExperience"
+                    title="Experiencia"
+                    icon="sap-icon://building"
+                    complete="false">
+                    <core:Fragment
+                        fragmentName="cv.viewer.cvviewer.view.steps.Step3Experience"
+                        type="XML"/>
+                </WizardStep>
+
+                <!-- ═══ PASO 4: PROYECTOS ═══ -->
+                <WizardStep
+                    id="stepProjects"
+                    title="Proyectos"
+                    icon="sap-icon://collaborate"
+                    complete="false">
+                    <core:Fragment
+                        fragmentName="cv.viewer.cvviewer.view.steps.Step4Projects"
+                        type="XML"/>
+                </WizardStep>
+
+                <!-- ═══ PASO 5: EDUCACIÓN ═══ -->
+                <WizardStep
+                    id="stepEducation"
+                    title="Educación"
+                    icon="sap-icon://education"
+                    complete="false">
+                    <core:Fragment
+                        fragmentName="cv.viewer.cvviewer.view.steps.Step5Education"
+                        type="XML"/>
+                </WizardStep>
+
+                <!-- ═══ PASO 6: CERTIFICACIONES ═══ -->
+                <WizardStep
+                    id="stepCertifications"
+                    title="Certificaciones"
+                    icon="sap-icon://certificate"
+                    complete="false">
+                    <core:Fragment
+                        fragmentName="cv.viewer.cvviewer.view.steps.Step6Certifications"
+                        type="XML"/>
+                </WizardStep>
+
+                <!-- ═══ PASO 7: IDIOMAS ═══ -->
+                <WizardStep
+                    id="stepLanguages"
+                    title="Idiomas"
+                    icon="sap-icon://world"
+                    complete="false">
+                    <core:Fragment
+                        fragmentName="cv.viewer.cvviewer.view.steps.Step7Languages"
+                        type="XML"/>
+                </WizardStep>
+
+            </Wizard>
+        </content>
+
+        <!-- Footer con navegación -->
+        <footer>
+            <OverflowToolbar>
+                <ToolbarSpacer/>
+                <Button
+                    id="btnBack"
+                    text="Anterior"
+                    icon="sap-icon://navigation-left-arrow"
+                    visible="false"
+                    press=".onBack"/>
+                <Button
+                    id="btnNext"
+                    text="Siguiente"
+                    icon="sap-icon://navigation-right-arrow"
+                    iconFirst="false"
+                    type="Emphasized"
+                    press=".onNext"/>
+                <Button
+                    id="btnFinish"
+                    text="Finalizar"
+                    icon="sap-icon://accept"
+                    type="Success"
+                    visible="false"
+                    press=".onWizardComplete"/>
+            </OverflowToolbar>
+        </footer>
+
+    </Page>
+
+</mvc:View>

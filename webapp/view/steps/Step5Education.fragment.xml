@@ -1,0 +1,53 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <VBox class="sapUiMediumMargin">
+
+        <Toolbar>
+            <Title text="🎓 Educación" level="H3"/>
+            <ToolbarSpacer/>
+            <Button
+                text="Agregar Educación"
+                icon="sap-icon://add"
+                type="Emphasized"
+                press=".onAddItem">
+                <customData>
+                    <core:CustomData key="entity" value="education"/>
+                </customData>
+            </Button>
+        </Toolbar>
+
+        <Table
+            id="tableEducation"
+            items="{wizard>/education}"
+            noDataText="No hay educación cargada. Hacé clic en 'Agregar Educación'."
+            mode="None">
+
+            <columns>
+                <Column width="25%"><Text text="Institución"/></Column>
+                <Column width="25%"><Text text="Título"/></Column>
+                <Column width="20%"><Text text="Campo de estudio"/></Column>
+                <Column width="10%" hAlign="Center"><Text text="Inicio"/></Column>
+                <Column width="10%" hAlign="Center"><Text text="Fin"/></Column>
+                <Column width="10%" hAlign="Center"><Text text=""/></Column>
+            </columns>
+
+            <items>
+                <ColumnListItem vAlign="Middle">
+                    <cells>
+                        <Input value="{wizard>institution}" placeholder="Ej: UTN" liveChange=".onItemChange"/>
+                        <Input value="{wizard>degree}" placeholder="Ej: Ingeniería en Sistemas" liveChange=".onItemChange"/>
+                        <Input value="{wizard>fieldOfStudy}" placeholder="Ej: Sistemas de Información" liveChange=".onItemChange"/>
+                        <StepInput value="{wizard>startYear}" min="1990" max="2100" step="1" validationMode="LiveChange" change=".onItemChange"/>
+                        <StepInput value="{wizard>endYear}" min="1990" max="2100" step="1" validationMode="LiveChange" change=".onItemChange"/>
+                        <Button icon="sap-icon://delete" type="Reject" press=".onDeleteItem" tooltip="Eliminar"/>
+                    </cells>
+                </ColumnListItem>
+            </items>
+
+        </Table>
+
+    </VBox>
+
+</core:FragmentDefinition>

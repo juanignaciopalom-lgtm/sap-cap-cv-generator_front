@@ -1,0 +1,51 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <VBox class="sapUiMediumMargin">
+
+        <Toolbar>
+            <Title text="📜 Certificaciones" level="H3"/>
+            <ToolbarSpacer/>
+            <Button
+                text="Agregar Certificación"
+                icon="sap-icon://add"
+                type="Emphasized"
+                press=".onAddItem">
+                <customData>
+                    <core:CustomData key="entity" value="certifications"/>
+                </customData>
+            </Button>
+        </Toolbar>
+
+        <Table
+            id="tableCertifications"
+            items="{wizard>/certifications}"
+            noDataText="No hay certificaciones cargadas. Hacé clic en 'Agregar Certificación'."
+            mode="None">
+
+            <columns>
+                <Column width="30%"><Text text="Nombre"/></Column>
+                <Column width="25%"><Text text="Organización"/></Column>
+                <Column width="10%" hAlign="Center"><Text text="Año"/></Column>
+                <Column width="25%"><Text text="URL Credencial"/></Column>
+                <Column width="10%" hAlign="Center"><Text text=""/></Column>
+            </columns>
+
+            <items>
+                <ColumnListItem vAlign="Middle">
+                    <cells>
+                        <Input value="{wizard>name}" placeholder="Ej: SAP Certified Developer" liveChange=".onItemChange"/>
+                        <Input value="{wizard>issuingOrg}" placeholder="Ej: SAP, Microsoft, Google" liveChange=".onItemChange"/>
+                        <StepInput value="{wizard>issueYear}" min="1990" max="2100" step="1" validationMode="LiveChange" change=".onItemChange"/>
+                        <Input value="{wizard>credentialUrl}" placeholder="https://credential.net/..." type="Url" liveChange=".onItemChange"/>
+                        <Button icon="sap-icon://delete" type="Reject" press=".onDeleteItem" tooltip="Eliminar"/>
+                    </cells>
+                </ColumnListItem>
+            </items>
+
+        </Table>
+
+    </VBox>
+
+</core:FragmentDefinition>
