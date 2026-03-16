@@ -168,8 +168,12 @@
                         <items>
                             <CustomListItem>
                                 <VBox class="cvExpCard">
-                                    <HBox justifyContent="SpaceBetween">
-                                        <VBox>
+                                    <HBox
+                                        justifyContent="SpaceBetween"
+                                        alignItems="Start"
+                                        class="cvExpHeader"
+                                    >
+                                        <VBox class="cvExpMainInfo">
                                             <Title
                                                 text="{cv>role}"
                                                 class="cvExpRole"
@@ -179,7 +183,11 @@
                                                 class="cvExpCompany"
                                             />
                                         </VBox>
-                                        <VBox alignItems="End">
+
+                                        <VBox
+                                            alignItems="End"
+                                            class="cvExpMeta"
+                                        >
                                             <Label
                                                 text="{cv>startDate}"
                                                 class="cvExpDate"
@@ -192,6 +200,7 @@
                                             />
                                         </VBox>
                                     </HBox>
+
                                     <Text
                                         text="{cv>description}"
                                         class="cvExpDesc"

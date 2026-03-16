@@ -69,18 +69,26 @@ sap.ui.define([
                             new Filter("profile_ID", FilterOperator.EQ, sProfileId)
                         ]).requestContexts(0, 100)
                     ]).then(function (aResults) {
-                        oModel.setProperty("/skills", aResults[0].map(function (c) { return c.getObject(); }));
-                        oModel.setProperty("/experiences", aResults[1].map(function (c) { return c.getObject(); }));
-                        oModel.setProperty("/projects", aResults[2].map(function (c) { return c.getObject(); }));
-                        oModel.setProperty("/education", aResults[3].map(function (c) { return c.getObject(); }));
-
+                        var aSkills = aResults[0].map(function (c) { return c.getObject(); });
+                        var aExperiences = aResults[1].map(function (c) { return c.getObject(); });
+                        var aProjects = aResults[2].map(function (c) { return c.getObject(); });
+                        var aEducation = aResults[3].map(function (c) { return c.getObject(); });
                         var aCerts = aResults[4].map(function (c) { return c.getObject(); });
+                        var aLanguages = aResults[5].map(function (c) { return c.getObject(); });
+
+                        aSkills = that._sortSkills(aSkills);
+                        aExperiences = that._sortExperiences(aExperiences);
+
                         aCerts.sort(function (a, b) {
                             return (b.issueYear || 0) - (a.issueYear || 0);
                         });
-                        oModel.setProperty("/certifications", aCerts);
 
-                        oModel.setProperty("/languages", aResults[5].map(function (c) { return c.getObject(); }));
+                        oModel.setProperty("/skills", aSkills);
+                        oModel.setProperty("/experiences", aExperiences);
+                        oModel.setProperty("/projects", aProjects);
+                        oModel.setProperty("/education", aEducation);
+                        oModel.setProperty("/certifications", aCerts);
+                        oModel.setProperty("/languages", aLanguages);
 
                         that._snapInitialized = false;
                         setTimeout(function () { that._initSnapScroll(); }, 600);
@@ -95,6 +103,70 @@ sap.ui.define([
                     setTimeout(function () { that._initSnapScroll(); }, 300);
                 }
             });
+        },
+
+        _getSkillCategoryOrder: function () {
+            return [
+                "Backend",
+                "Frontend",
+                "SAP",
+                "Database",
+                "Base de Datos",
+                "Bases de Datos",
+                "Cloud",
+                "DevOps",
+                "Soft Skill",
+                "Other",
+                "Otros",
+                "Herramientas",
+                "Tools"
+            ];
+        },
+
+        _sortSkills: function (aSkills) {
+            var aCategoryOrder = this._getSkillCategoryOrder();
+
+            return aSkills.slice().sort(function (a, b) {
+                var sCatA = (a.category || "Other").trim();
+                var sCatB = (b.category || "Other").trim();
+
+                var iCatA = aCategoryOrder.indexOf(sCatA);
+                var iCatB = aCategoryOrder.indexOf(sCatB);
+
+                iCatA = iCatA === -1 ? 999 : iCatA;
+                iCatB = iCatB === -1 ? 999 : iCatB;
+
+                if (iCatA !== iCatB) {
+                    return iCatA - iCatB;
+                }
+
+                return (a.name || "").localeCompare((b.name || ""), "es", { sensitivity: "base" });
+            });
+        },
+
+        _sortExperiences: function (aExperiences) {
+            return aExperiences.slice().sort(function (a, b) {
+                var iA = this._toTime(a.startDate);
+                var iB = this._toTime(b.startDate);
+
+                if (iA !== iB) {
+                    return iA - iB;
+                }
+
+                var iEndA = this._toTime(a.endDate);
+                var iEndB = this._toTime(b.endDate);
+
+                return iEndA - iEndB;
+            }.bind(this));
+        },
+
+        _toTime: function (vDate) {
+            if (!vDate) {
+                return 0;
+            }
+
+            var iTime = new Date(vDate).getTime();
+            return isNaN(iTime) ? 0 : iTime;
         },
 
         _initSnapScroll: function () {
@@ -123,7 +195,10 @@ sap.ui.define([
                 var iMin = Infinity;
                 aSections.forEach(function (oSec, i) {
                     var iDist = Math.abs(oSec.offsetTop - iScrollTop);
-                    if (iDist < iMin) { iMin = iDist; iBest = i; }
+                    if (iDist < iMin) {
+                        iMin = iDist;
+                        iBest = i;
+                    }
                 });
                 return iBest;
             };
