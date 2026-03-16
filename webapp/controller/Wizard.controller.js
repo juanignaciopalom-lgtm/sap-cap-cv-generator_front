@@ -15,6 +15,17 @@ sap.ui.define([
             this._currentStep = 1;
             this._profileId = null;
 
+            const sPath = window.location.pathname || "";
+            const bAdminEntry =
+                sPath === "/admin" ||
+                sPath.startsWith("/admin/") ||
+                sPath.indexOf("/admin") >= 0;
+
+            if (!bAdminEntry) {
+                this.getOwnerComponent().getRouter().navTo("RouteView1");
+                return;
+            }
+
             const oModel = new JSONModel({
                 profile: {
                     firstName: "", lastName: "", title: "",
@@ -37,7 +48,13 @@ sap.ui.define([
         // ─── Cargar datos existentes ─────────────────────────────────
         _loadExistingData: function () {
             fetch(`${BASE_URL}/Profile?$top=1`)
-                .then(res => res.ok ? res.json() : null)
+                .then(res => {
+                    if (res.status === 401 || res.status === 403) {
+                        window.location.href = "/admin";
+                        return null;
+                    }
+                    return res.ok ? res.json() : null;
+                })
                 .then(data => {
                     if (!data || !data.value || data.value.length === 0) return;
 
@@ -45,8 +62,10 @@ sap.ui.define([
                     this._profileId = oRaw.ID;
                     const oModel = this.getView().getModel("wizard");
 
-                    // Solo campos permitidos del Profile
-                    const aAllowed = ["firstName", "lastName", "title", "summary", "email", "phone", "location", "linkedinUrl", "githubUrl", "photoUrl"];
+                    const aAllowed = [
+                        "firstName", "lastName", "title", "summary", "email",
+                        "phone", "location", "linkedinUrl", "githubUrl", "photoUrl"
+                    ];
                     const oProfile = {};
                     aAllowed.forEach(sField => { oProfile[sField] = oRaw[sField] || ""; });
                     oModel.setProperty("/profile", oProfile);
@@ -56,7 +75,13 @@ sap.ui.define([
 
                     aEntities.forEach((sEntity, i) => {
                         fetch(`${BASE_URL}/${sEntity}?$filter=profile_ID eq ${this._profileId}`)
-                            .then(res => res.ok ? res.json() : { value: [] })
+                            .then(res => {
+                                if (res.status === 401 || res.status === 403) {
+                                    window.location.href = "/admin";
+                                    return { value: [] };
+                                }
+                                return res.ok ? res.json() : { value: [] };
+                            })
                             .then(result => {
                                 const aItems = (result.value || []).map(item => {
                                     const oClean = this._cleanItem(item);
@@ -142,6 +167,12 @@ sap.ui.define([
                 })
                 .catch(err => {
                     oModel.setProperty("/busy", false);
+
+                    if (err && (err.status === 401 || err.status === 403)) {
+                        window.location.href = "/admin";
+                        return;
+                    }
+
                     MessageBox.error("Error al guardar: " + err.message);
                 });
         },
@@ -150,8 +181,10 @@ sap.ui.define([
         _saveProfile: function () {
             const oRaw = this.getView().getModel("wizard").getProperty("/profile");
 
-            // Whitelist estricto — solo campos de Profile
-            const aAllowed = ["firstName", "lastName", "title", "summary", "email", "phone", "location", "linkedinUrl", "githubUrl", "photoUrl"];
+            const aAllowed = [
+                "firstName", "lastName", "title", "summary", "email",
+                "phone", "location", "linkedinUrl", "githubUrl", "photoUrl"
+            ];
             const oProfile = {};
             aAllowed.forEach(sField => {
                 oProfile[sField] = oRaw[sField] || null;
@@ -168,7 +201,14 @@ sap.ui.define([
                 body: JSON.stringify(oProfile)
             })
                 .then(res => {
-                    if (!res.ok) return res.text().then(t => { throw new Error(t); });
+                    if (res.status === 401 || res.status === 403) {
+                        const oError = new Error("No autorizado");
+                        oError.status = res.status;
+                        throw oError;
+                    }
+                    if (!res.ok) {
+                        return res.text().then(t => { throw new Error(t); });
+                    }
                     return res.json();
                 })
                 .then(data => {
@@ -197,6 +237,11 @@ sap.ui.define([
                             body: JSON.stringify(oBody)
                         })
                             .then(res => {
+                                if (res.status === 401 || res.status === 403) {
+                                    const oError = new Error("No autorizado");
+                                    oError.status = res.status;
+                                    throw oError;
+                                }
                                 if (!res.ok) return res.text().then(t => { throw new Error(t); });
                                 return res.json();
                             })
@@ -214,6 +259,11 @@ sap.ui.define([
                             body: JSON.stringify(oBody)
                         })
                             .then(res => {
+                                if (res.status === 401 || res.status === 403) {
+                                    const oError = new Error("No autorizado");
+                                    oError.status = res.status;
+                                    throw oError;
+                                }
                                 if (!res.ok) return res.text().then(t => { throw new Error(t); });
                                 oModel.setProperty(`/${sEntity}/${iIndex}/__state`, "saved");
                             })
@@ -221,11 +271,17 @@ sap.ui.define([
                 }
             });
 
-            // DELETE los marcados
             aItems.filter(i => i.__state === "deleted" && i.ID).forEach(item => {
                 aPromises.push(
                     fetch(`${BASE_URL}/${sEntityName}/${item.ID}`, { method: "DELETE" })
-                        .then(res => { if (!res.ok) return res.text().then(t => { throw new Error(t); }); })
+                        .then(res => {
+                            if (res.status === 401 || res.status === 403) {
+                                const oError = new Error("No autorizado");
+                                oError.status = res.status;
+                                throw oError;
+                            }
+                            if (!res.ok) return res.text().then(t => { throw new Error(t); });
+                        })
                 );
             });
 
@@ -304,21 +360,18 @@ sap.ui.define([
         _cleanItem: function (oItem) {
             const oClean = {};
 
-            // Excluir metadata OData, campos internos y campos de navegación
             Object.keys(oItem).forEach(sKey => {
                 if (!sKey.startsWith("@") && sKey !== "__state" && sKey !== "__index") {
                     oClean[sKey] = oItem[sKey];
                 }
             });
 
-            // Convertir strings vacíos de fechas a null
             ["startDate", "endDate"].forEach(sField => {
                 if (sField in oClean && (oClean[sField] === "" || oClean[sField] === undefined)) {
                     oClean[sField] = null;
                 }
             });
 
-            // Convertir strings vacíos de números a null
             ["startYear", "endYear", "issueYear"].forEach(sField => {
                 if (sField in oClean && (oClean[sField] === "" || oClean[sField] === 0 || oClean[sField] === undefined)) {
                     oClean[sField] = null;
