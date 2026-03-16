@@ -97,6 +97,13 @@
                                     visible="{= !!${cv>/profile/githubUrl} }"
                                     class="cvContactBtn"
                                 />
+                                <Button
+                                    icon="sap-icon://hint"
+                                    text="Acerca de la app"
+                                    type="Transparent"
+                                    press="onAboutApp"
+                                    class="cvContactBtn cvAboutBtn"
+                                />
                             </HBox>
                         </VBox>
                     </HBox>

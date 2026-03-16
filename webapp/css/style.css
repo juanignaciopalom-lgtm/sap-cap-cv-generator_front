@@ -71,8 +71,8 @@ body {
 }
 
 .cvName.sapMTitle {
-    color: #16223d !important;
-    font-size: clamp(2.5rem, 5vw, 2.6rem) !important;
+    color: #0f172a !important;
+    font-size: clamp(1.9rem, 5vw, 2.6rem) !important;
     font-weight: 800 !important;
     line-height: 1.1 !important;
     display: block !important;
@@ -173,6 +173,11 @@ body {
     white-space: nowrap;
 }
 
+.cvAboutBtn.sapMBtn .sapMBtnInner {
+    background: #eef4ff !important;
+    border-color: #3b82f6 !important;
+}
+
 /* ─── SECTIONS ────────────────────────────────────────── */
 
 .cvSection {
@@ -222,8 +227,8 @@ body {
 }
 
 .cvSkillName .sapMTitle {
-    color: #0c2b57 !important;
-    font-size: 2.4rem !important;
+    color: #0f172a !important;
+    font-size: 0.95rem !important;
     font-weight: 700 !important;
     text-align: center;
 }
@@ -468,6 +473,59 @@ body {
     margin-top: 4px;
 }
 
+/* ─── ABOUT DIALOG ────────────────────────────────────── */
+
+.cvAboutDialogContent {
+    gap: 10px;
+}
+
+.cvAboutMainTitle.sapMTitle {
+    color: #0f172a !important;
+    font-size: 1.35rem !important;
+    font-weight: 800 !important;
+    margin-bottom: 4px !important;
+}
+
+.cvAboutIntroText.sapMText {
+    color: #475569 !important;
+    line-height: 1.65 !important;
+    margin-bottom: 10px !important;
+}
+
+.cvAboutRow {
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    background: #f8fbff;
+    border: 1px solid #dbeafe;
+    border-radius: 12px;
+    margin-top: 6px;
+}
+
+.cvAboutRowIcon {
+    color: #2563eb !important;
+    font-size: 1.2rem !important;
+    margin-top: 3px;
+    flex-shrink: 0;
+}
+
+.cvAboutRowTextBox {
+    flex: 1;
+    min-width: 0;
+}
+
+.cvAboutRowTitle.sapMTitle {
+    color: #1e3a8a !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 4px !important;
+}
+
+.cvAboutRowText.sapMText {
+    color: #475569 !important;
+    line-height: 1.6 !important;
+}
+
 /* ─── SAPUI5 LIST / GRID FIX ──────────────────────────── */
 
 .sapMListBGTransparent,
@@ -558,6 +616,10 @@ body {
     .cvExpLocation .sapMLabel {
         text-align: left;
     }
+
+    .cvAboutRow {
+        padding: 12px 14px;
+    }
 }
 
 @media (max-width: 600px) {
@@ -575,13 +637,11 @@ body {
     }
 
     .cvSectionTitle .sapMTitle {
-        font-size: 2.1rem !important;
-        font-weight: 800 !important;
-        color: #2563eb !important;
-        margin-bottom: 10px !important;
-        padding-bottom: 6px;
-        border-bottom: 3px solid #3b82f6;
-        display: inline-block;
+        font-size: 1.65rem !important;
+    }
+
+    .cvAboutMainTitle.sapMTitle {
+        font-size: 1.2rem !important;
     }
 
     #gridProjects {

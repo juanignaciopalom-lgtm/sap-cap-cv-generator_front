@@ -4,8 +4,29 @@ sap.ui.define([
     "sap/ui/model/odata/v4/ODataModel",
     "sap/ui/model/Filter",
     "sap/ui/model/FilterOperator",
-    "sap/m/MessageToast"
-], function (Controller, JSONModel, ODataModel, Filter, FilterOperator, MessageToast) {
+    "sap/m/MessageToast",
+    "sap/m/Dialog",
+    "sap/m/Button",
+    "sap/m/VBox",
+    "sap/m/HBox",
+    "sap/m/Text",
+    "sap/m/Title",
+    "sap/ui/core/Icon"
+], function (
+    Controller,
+    JSONModel,
+    ODataModel,
+    Filter,
+    FilterOperator,
+    MessageToast,
+    Dialog,
+    Button,
+    VBox,
+    HBox,
+    Text,
+    Title,
+    Icon
+) {
     "use strict";
 
     return Controller.extend("cv.viewer.cvviewer.controller.View1", {
@@ -256,6 +277,90 @@ sap.ui.define([
             var sUrl = this.getView().getModel("cv").getProperty("/profile/githubUrl");
             if (sUrl) { window.open(sUrl, "_blank"); }
             else { MessageToast.show("GitHub no configurado"); }
+        },
+
+        onAboutApp: function () {
+            if (this._oAboutDialog) {
+                this._oAboutDialog.open();
+                return;
+            }
+
+            var oIntroTitle = new Title({
+                text: "CV Viewer sobre SAP BTP",
+                level: "H4"
+            }).addStyleClass("cvAboutMainTitle");
+
+            var oIntroText = new Text({
+                text: "Aplicación desarrollada como portfolio técnico para mostrar una solución full-stack dentro del ecosistema SAP. Permite administrar y visualizar un CV profesional con información dinámica persistida en base de datos."
+            }).addStyleClass("cvAboutIntroText");
+
+            var oContent = new VBox({
+                items: [
+                    oIntroTitle,
+                    oIntroText,
+                    this._createAboutRow(
+                        "sap-icon://target-group",
+                        "Propósito",
+                        "Fue pensada para demostrar una aplicación real construida con tecnologías SAP modernas, con foco en experiencia visual, persistencia, arquitectura limpia y despliegue en la nube."
+                    ),
+                    this._createAboutRow(
+                        "sap-icon://process",
+                        "Tecnologías",
+                        "Frontend en SAP UI5, backend en SAP CAP con Node.js, autenticación con XSUAA, despliegue en SAP BTP Cloud Foundry y persistencia en PostgreSQL."
+                    ),
+                    this._createAboutRow(
+                        "sap-icon://split",
+                        "Arquitectura",
+                        "La solución se compone de un approuter, un frontend UI5, un backend CAP y una base PostgreSQL. El frontend consume servicios públicos del backend para renderizar toda la información del perfil."
+                    ),
+                    this._createAboutRow(
+                        "sap-icon://developer-settings",
+                        "Construcción del proyecto",
+                        "El proyecto incluye un wizard de administración para cargar y actualizar la información del CV, y una vista pública orientada a portfolio para mostrar skills, experiencia, proyectos, educación, certificaciones e idiomas."
+                    )
+                ]
+            }).addStyleClass("cvAboutDialogContent sapUiContentPadding");
+
+            this._oAboutDialog = new Dialog({
+                title: "Acerca de la app",
+                contentWidth: "700px",
+                horizontalScrolling: false,
+                verticalScrolling: true,
+                content: [oContent],
+                beginButton: new Button({
+                    text: "Cerrar",
+                    press: function () {
+                        this._oAboutDialog.close();
+                    }.bind(this)
+                })
+            });
+
+            this.getView().addDependent(this._oAboutDialog);
+            this._oAboutDialog.open();
+        },
+
+        _createAboutRow: function (sIcon, sTitle, sText) {
+            var oIcon = new Icon({
+                src: sIcon
+            }).addStyleClass("cvAboutRowIcon");
+
+            var oTitle = new Title({
+                text: sTitle,
+                level: "H5"
+            }).addStyleClass("cvAboutRowTitle");
+
+            var oText = new Text({
+                text: sText
+            }).addStyleClass("cvAboutRowText");
+
+            var oTextBox = new VBox({
+                items: [oTitle, oText]
+            }).addStyleClass("cvAboutRowTextBox");
+
+            return new HBox({
+                alignItems: "Start",
+                items: [oIcon, oTextBox]
+            }).addStyleClass("cvAboutRow");
         }
     });
 });
