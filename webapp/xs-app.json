@@ -5,18 +5,18 @@
     {
       "source": "^/api/public/(.*)$",
       "target": "/api/public/$1",
-      "destination": "srv-api",
+      "destination": "backend_api",
       "authenticationType": "none"
     },
     {
       "source": "^/api/admin/(.*)$",
       "target": "/api/admin/$1",
-      "destination": "srv-api",
+      "destination": "backend_api",
       "authenticationType": "xsuaa"
     },
     {
-      "source": "^/cvviewercvviewer/admin.html$",
-      "target": "$0",
+      "source": "^/admin$",
+      "target": "/cvviewercvviewer/admin.html",
       "service": "html5-apps-repo-rt",
       "authenticationType": "xsuaa"
     },

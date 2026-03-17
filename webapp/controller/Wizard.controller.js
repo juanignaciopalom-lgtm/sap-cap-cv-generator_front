@@ -10,19 +10,18 @@ sap.ui.define([
 
     return Controller.extend("cv.viewer.cvviewer.controller.Wizard", {
 
-        // ─── Lifecycle ───────────────────────────────────────────────
         onInit: function () {
             this._currentStep = 1;
             this._profileId = null;
 
             const sPath = window.location.pathname || "";
-            const bAdminEntry =
-                sPath === "/admin" ||
-                sPath.startsWith("/admin/") ||
-                sPath.indexOf("/admin") >= 0;
+            const sHash = window.location.hash || "";
 
-            if (!bAdminEntry) {
-                this.getOwnerComponent().getRouter().navTo("RouteView1");
+            const bIsWizard = sHash.indexOf("wizard") !== -1;
+            const bIsAdminEntry = sPath === "/admin";
+
+            if (bIsWizard && !bIsAdminEntry) {
+                window.location.replace("/admin#/wizard");
                 return;
             }
 
@@ -45,58 +44,121 @@ sap.ui.define([
             this._loadExistingData();
         },
 
-        // ─── Cargar datos existentes ─────────────────────────────────
-        _loadExistingData: function () {
-            fetch(`${BASE_URL}/Profile?$top=1`)
-                .then(res => {
-                    if (res.status === 401 || res.status === 403) {
-                        window.location.href = "/admin";
-                        return null;
-                    }
-                    return res.ok ? res.json() : null;
-                })
-                .then(data => {
-                    if (!data || !data.value || data.value.length === 0) return;
+        _fetchCsrfToken: function () {
+            return fetch(`${BASE_URL}/Profile`, {
+                method: "GET",
+                headers: {
+                    "x-csrf-token": "Fetch"
+                },
+                credentials: "same-origin"
+            }).then(res => {
+                if (res.status === 401 || res.status === 403) {
+                    const oError = new Error("No autorizado");
+                    oError.status = res.status;
+                    throw oError;
+                }
 
-                    const oRaw = data.value[0];
-                    this._profileId = oRaw.ID;
-                    const oModel = this.getView().getModel("wizard");
+                const sToken = res.headers.get("x-csrf-token");
+                if (!sToken) {
+                    throw new Error("No se pudo obtener el CSRF token.");
+                }
 
-                    const aAllowed = [
-                        "firstName", "lastName", "title", "summary", "email",
-                        "phone", "location", "linkedinUrl", "githubUrl", "photoUrl"
-                    ];
-                    const oProfile = {};
-                    aAllowed.forEach(sField => { oProfile[sField] = oRaw[sField] || ""; });
-                    oModel.setProperty("/profile", oProfile);
-
-                    const aEntities = ["Skills", "Experiences", "Projects", "Education", "Certifications", "Languages"];
-                    const aKeys = ["skills", "experiences", "projects", "education", "certifications", "languages"];
-
-                    aEntities.forEach((sEntity, i) => {
-                        fetch(`${BASE_URL}/${sEntity}?$filter=profile_ID eq ${this._profileId}`)
-                            .then(res => {
-                                if (res.status === 401 || res.status === 403) {
-                                    window.location.href = "/admin";
-                                    return { value: [] };
-                                }
-                                return res.ok ? res.json() : { value: [] };
-                            })
-                            .then(result => {
-                                const aItems = (result.value || []).map(item => {
-                                    const oClean = this._cleanItem(item);
-                                    oClean.ID = item.ID;
-                                    oClean.__state = "saved";
-                                    return oClean;
-                                });
-                                oModel.setProperty(`/${aKeys[i]}`, aItems);
-                            });
-                    });
-                })
-                .catch(err => console.error("Error cargando datos existentes:", err));
+                return sToken;
+            });
         },
 
-        // ─── Navegación ──────────────────────────────────────────────
+        _loadExistingData: async function () {
+            try {
+                const res = await fetch(`${BASE_URL}/Profile?$top=1`, {
+                    method: "GET",
+                    credentials: "same-origin"
+                });
+
+                if (res.status === 401 || res.status === 403) {
+                    window.location.replace("/admin#/wizard");
+                    return;
+                }
+
+                if (!res.ok) {
+                    const sErrorText = await res.text();
+                    throw new Error(sErrorText);
+                }
+
+                const sContentType = res.headers.get("content-type") || "";
+                if (!sContentType.includes("application/json")) {
+                    const sRaw = await res.text();
+                    throw new Error("La API devolvió HTML en vez de JSON: " + sRaw.substring(0, 120));
+                }
+
+                const data = await res.json();
+
+                if (!data || !data.value || data.value.length === 0) {
+                    return;
+                }
+
+                const oRaw = data.value[0];
+                this._profileId = oRaw.ID;
+
+                const oModel = this.getView().getModel("wizard");
+
+                const aAllowed = [
+                    "firstName", "lastName", "title", "summary", "email",
+                    "phone", "location", "linkedinUrl", "githubUrl", "photoUrl"
+                ];
+
+                const oProfile = {};
+                aAllowed.forEach(function (sField) {
+                    oProfile[sField] = oRaw[sField] || "";
+                });
+
+                oModel.setProperty("/profile", oProfile);
+
+                const aEntities = ["Skills", "Experiences", "Projects", "Education", "Certifications", "Languages"];
+                const aKeys = ["skills", "experiences", "projects", "education", "certifications", "languages"];
+
+                for (let i = 0; i < aEntities.length; i++) {
+                    const sEntity = aEntities[i];
+                    const sKey = aKeys[i];
+
+                    const resEntity = await fetch(`${BASE_URL}/${sEntity}?$filter=profile_ID eq ${this._profileId}`, {
+                        method: "GET",
+                        credentials: "same-origin"
+                    });
+
+                    if (resEntity.status === 401 || resEntity.status === 403) {
+                        window.location.replace("/admin#/wizard");
+                        return;
+                    }
+
+                    if (!resEntity.ok) {
+                        const sErrorText = await resEntity.text();
+                        throw new Error(sErrorText);
+                    }
+
+                    const sEntityContentType = resEntity.headers.get("content-type") || "";
+                    if (!sEntityContentType.includes("application/json")) {
+                        const sRaw = await resEntity.text();
+                        throw new Error("La API devolvió HTML en vez de JSON para " + sEntity + ": " + sRaw.substring(0, 120));
+                    }
+
+                    const result = await resEntity.json();
+
+                    const aItems = (result.value || []).map(item => {
+                        const oClean = this._cleanItem(item);
+                        oClean.ID = item.ID;
+                        oClean.__state = "saved";
+                        return oClean;
+                    });
+
+                    oModel.setProperty(`/${sKey}`, aItems);
+                }
+
+            } catch (err) {
+                console.error("Error cargando datos existentes:", err);
+                MessageBox.error("Error cargando datos existentes: " + err.message);
+            }
+        },
+
         onNext: function () {
             if (!this._validateStep(this._currentStep)) return;
 
@@ -131,7 +193,6 @@ sap.ui.define([
             this.byId("btnFinish").setVisible(iStep === 7);
         },
 
-        // ─── Validaciones ────────────────────────────────────────────
         _validateStep: function (iStep) {
             if (iStep === 1) {
                 const oProfile = this.getView().getModel("wizard").getProperty("/profile");
@@ -143,7 +204,6 @@ sap.ui.define([
             return true;
         },
 
-        // ─── Guardar TODO al finalizar ───────────────────────────────
         onWizardComplete: function () {
             const oModel = this.getView().getModel("wizard");
             oModel.setProperty("/busy", true);
@@ -169,7 +229,7 @@ sap.ui.define([
                     oModel.setProperty("/busy", false);
 
                     if (err && (err.status === 401 || err.status === 403)) {
-                        window.location.href = "/admin";
+                        window.location.replace("/admin#/wizard");
                         return;
                     }
 
@@ -177,7 +237,6 @@ sap.ui.define([
                 });
         },
 
-        // ─── PASO 1: Guardar Profile ─────────────────────────────────
         _saveProfile: function () {
             const oRaw = this.getView().getModel("wizard").getProperty("/profile");
 
@@ -185,6 +244,7 @@ sap.ui.define([
                 "firstName", "lastName", "title", "summary", "email",
                 "phone", "location", "linkedinUrl", "githubUrl", "photoUrl"
             ];
+
             const oProfile = {};
             aAllowed.forEach(sField => {
                 oProfile[sField] = oRaw[sField] || null;
@@ -195,11 +255,18 @@ sap.ui.define([
                 ? `${BASE_URL}/Profile/${this._profileId}`
                 : `${BASE_URL}/Profile`;
 
-            return fetch(sUrl, {
-                method: sMethod,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(oProfile)
-            })
+            return this._fetchCsrfToken()
+                .then(sToken => {
+                    return fetch(sUrl, {
+                        method: sMethod,
+                        headers: {
+                            "Content-Type": "application/json",
+                            "x-csrf-token": sToken
+                        },
+                        credentials: "same-origin",
+                        body: JSON.stringify(oProfile)
+                    });
+                })
                 .then(res => {
                     if (res.status === 401 || res.status === 403) {
                         const oError = new Error("No autorizado");
@@ -212,51 +279,87 @@ sap.ui.define([
                     return res.json();
                 })
                 .then(data => {
-                    this._profileId = data.ID;
+                    if (data && data.ID) {
+                        this._profileId = data.ID;
+                    }
                 });
         },
 
-        // ─── PASOS 2-7: Guardar colecciones ─────────────────────────
         _saveCollection: function (sEntity) {
             if (!this._profileId) return Promise.resolve();
 
-            const oModel = this.getView().getModel("wizard");
-            const aItems = oModel.getProperty(`/${sEntity}`);
-            const sEntityName = this._getEntityName(sEntity);
-            const aPromises = [];
+            return this._fetchCsrfToken().then(sToken => {
+                const oModel = this.getView().getModel("wizard");
+                const aItems = oModel.getProperty(`/${sEntity}`) || [];
+                const sEntityName = this._getEntityName(sEntity);
+                const aPromises = [];
 
-            aItems.forEach((item, iIndex) => {
-                if (item.__state === "deleted") return;
+                aItems.forEach((item, iIndex) => {
+                    if (item.__state === "deleted") return;
 
-                if (!item.ID || item.__state === "new") {
-                    const oBody = this._cleanItem({ ...item, profile_ID: this._profileId });
-                    aPromises.push(
-                        fetch(`${BASE_URL}/${sEntityName}`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(oBody)
-                        })
-                            .then(res => {
-                                if (res.status === 401 || res.status === 403) {
-                                    const oError = new Error("No autorizado");
-                                    oError.status = res.status;
-                                    throw oError;
-                                }
-                                if (!res.ok) return res.text().then(t => { throw new Error(t); });
-                                return res.json();
+                    if (!item.ID || item.__state === "new") {
+                        const oBody = this._cleanItem({ ...item, profile_ID: this._profileId });
+                        aPromises.push(
+                            fetch(`${BASE_URL}/${sEntityName}`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "x-csrf-token": sToken
+                                },
+                                credentials: "same-origin",
+                                body: JSON.stringify(oBody)
                             })
-                            .then(data => {
-                                oModel.setProperty(`/${sEntity}/${iIndex}/ID`, data.ID);
-                                oModel.setProperty(`/${sEntity}/${iIndex}/__state`, "saved");
+                                .then(res => {
+                                    if (res.status === 401 || res.status === 403) {
+                                        const oError = new Error("No autorizado");
+                                        oError.status = res.status;
+                                        throw oError;
+                                    }
+                                    if (!res.ok) {
+                                        return res.text().then(t => { throw new Error(t); });
+                                    }
+                                    return res.json();
+                                })
+                                .then(data => {
+                                    oModel.setProperty(`/${sEntity}/${iIndex}/ID`, data.ID);
+                                    oModel.setProperty(`/${sEntity}/${iIndex}/__state`, "saved");
+                                })
+                        );
+                    } else if (item.__state === "modified") {
+                        const oBody = this._cleanItem({ ...item, profile_ID: this._profileId });
+                        aPromises.push(
+                            fetch(`${BASE_URL}/${sEntityName}/${item.ID}`, {
+                                method: "PATCH",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "x-csrf-token": sToken
+                                },
+                                credentials: "same-origin",
+                                body: JSON.stringify(oBody)
                             })
-                    );
-                } else if (item.__state === "modified") {
-                    const oBody = this._cleanItem({ ...item, profile_ID: this._profileId });
+                                .then(res => {
+                                    if (res.status === 401 || res.status === 403) {
+                                        const oError = new Error("No autorizado");
+                                        oError.status = res.status;
+                                        throw oError;
+                                    }
+                                    if (!res.ok) {
+                                        return res.text().then(t => { throw new Error(t); });
+                                    }
+                                    oModel.setProperty(`/${sEntity}/${iIndex}/__state`, "saved");
+                                })
+                        );
+                    }
+                });
+
+                aItems.filter(i => i.__state === "deleted" && i.ID).forEach(item => {
                     aPromises.push(
                         fetch(`${BASE_URL}/${sEntityName}/${item.ID}`, {
-                            method: "PATCH",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(oBody)
+                            method: "DELETE",
+                            headers: {
+                                "x-csrf-token": sToken
+                            },
+                            credentials: "same-origin"
                         })
                             .then(res => {
                                 if (res.status === 401 || res.status === 403) {
@@ -264,34 +367,20 @@ sap.ui.define([
                                     oError.status = res.status;
                                     throw oError;
                                 }
-                                if (!res.ok) return res.text().then(t => { throw new Error(t); });
-                                oModel.setProperty(`/${sEntity}/${iIndex}/__state`, "saved");
+                                if (!res.ok) {
+                                    return res.text().then(t => { throw new Error(t); });
+                                }
                             })
                     );
-                }
+                });
+
+                const aRemaining = aItems.filter(i => i.__state !== "deleted");
+                oModel.setProperty(`/${sEntity}`, aRemaining);
+
+                return Promise.all(aPromises);
             });
-
-            aItems.filter(i => i.__state === "deleted" && i.ID).forEach(item => {
-                aPromises.push(
-                    fetch(`${BASE_URL}/${sEntityName}/${item.ID}`, { method: "DELETE" })
-                        .then(res => {
-                            if (res.status === 401 || res.status === 403) {
-                                const oError = new Error("No autorizado");
-                                oError.status = res.status;
-                                throw oError;
-                            }
-                            if (!res.ok) return res.text().then(t => { throw new Error(t); });
-                        })
-                );
-            });
-
-            const aRemaining = aItems.filter(i => i.__state !== "deleted");
-            oModel.setProperty(`/${sEntity}`, aRemaining);
-
-            return Promise.all(aPromises);
         },
 
-        // ─── ABM: Agregar fila ───────────────────────────────────────
         onAddItem: function (oEvent) {
             const sEntity = oEvent.getSource().data("entity");
             const oModel = this.getView().getModel("wizard");
@@ -301,7 +390,6 @@ sap.ui.define([
             oModel.setProperty(`/${sEntity}`, aItems);
         },
 
-        // ─── ABM: Eliminar fila ──────────────────────────────────────
         onDeleteItem: function (oEvent) {
             const oCtx = oEvent.getSource().getBindingContext("wizard");
             const sPath = oCtx.getPath();
@@ -327,16 +415,18 @@ sap.ui.define([
             });
         },
 
-        // ─── ABM: Marcar como modificado ────────────────────────────
         onItemChange: function (oEvent) {
             const oCtx = oEvent.getSource().getBindingContext("wizard");
             if (!oCtx) return;
+
             const sPath = oCtx.getPath();
             const aParts = sPath.split("/");
             const sEntity = aParts[1];
             const iIndex = parseInt(aParts[2]);
+
             const oModel = this.getView().getModel("wizard");
             const oItem = oModel.getProperty(`/${sEntity}/${iIndex}`);
+
             if (oItem && oItem.__state === "saved") {
                 oModel.setProperty(`/${sEntity}/${iIndex}/__state`, "modified");
             }
@@ -344,7 +434,6 @@ sap.ui.define([
 
         onProfileChange: function () { },
 
-        // ─── Helpers ─────────────────────────────────────────────────
         _getEntityName: function (sKey) {
             const map = {
                 skills: "Skills",
