@@ -162,7 +162,8 @@ body {
     align-items: center;
 }
 
-.cvContactBtn.sapMBtn .sapMBtnInner {
+.cvContactBtn.sapMBtn .sapMBtnInner,
+.cvDownloadBottomBtn.sapMBtn .sapMBtnInner {
     color: #2563eb !important;
     border: 1px solid #2563eb !important;
     border-radius: 24px !important;
@@ -176,6 +177,10 @@ body {
 .cvAboutBtn.sapMBtn .sapMBtnInner {
     background: #eef4ff !important;
     border-color: #3b82f6 !important;
+}
+
+.cvDownloadBottomBtn {
+    margin-top: 14px;
 }
 
 /* ─── SECTIONS ────────────────────────────────────────── */
@@ -547,20 +552,182 @@ body {
     justify-content: center;
 }
 
-.cvFooterInner {
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
-}
-
 .cvFooterText .sapMLabel {
     color: #9ca3af !important;
     font-size: 0.85rem !important;
 }
 
-/* ─── HERO RESPONSIVE FIX ─────────────────────────────── */
+/* ─── PDF OXFORD STYLE ────────────────────────────────── */
+
+.pdfRoot {
+    position: absolute !important;
+    left: -99999px !important;
+    top: 0 !important;
+    width: 794px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
+}
+
+.pdfRoot.pdfRenderMode {
+    left: 0 !important;
+    top: 0 !important;
+    opacity: 1 !important;
+    z-index: 9999 !important;
+    pointer-events: none !important;
+}
+
+.pdfPage {
+    width: 794px;
+    min-height: auto;
+    background: #ffffff;
+    color: #111111;
+    box-sizing: border-box;
+    padding: 52px 56px 56px 56px;
+    font-family: "Times New Roman", Georgia, serif;
+}
+
+.pdfHeader {
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #b9b9b9;
+}
+
+.pdfName.sapMTitle {
+    color: #111111 !important;
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    letter-spacing: 0.2px;
+    margin: 0 0 6px 0 !important;
+}
+
+.pdfHeadline.sapMText {
+    color: #333333 !important;
+    font-size: 13px !important;
+    line-height: 1.45 !important;
+    margin: 0 0 8px 0 !important;
+    display: block;
+}
+
+.pdfContactLine.sapMText,
+.pdfLinkLine.sapMText {
+    color: #444444 !important;
+    font-size: 11.5px !important;
+    line-height: 1.5 !important;
+    display: block;
+    margin-top: 2px !important;
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+}
+
+.pdfSection {
+    margin-bottom: 18px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.pdfSectionTitle.sapMTitle {
+    color: #111111 !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin: 0 0 8px 0 !important;
+    line-height: 1.3 !important;
+}
+
+.pdfParagraph.sapMText {
+    color: #222222 !important;
+    font-size: 12px !important;
+    line-height: 1.55 !important;
+    white-space: pre-wrap !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+}
+
+.pdfList {
+    margin: 0;
+    padding: 0;
+}
+
+.pdfList .sapMListUl {
+    margin: 0;
+    padding: 0;
+}
+
+.pdfListItem {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.pdfEntry {
+    padding: 0 0 10px 0;
+    margin-bottom: 10px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.pdfEntryCompact {
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+}
+
+.pdfEntryHeader {
+    gap: 12px;
+    width: 100%;
+}
+
+.pdfEntryLeft {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.pdfEntryRight {
+    flex: 0 0 auto;
+    min-width: 160px;
+    max-width: 210px;
+}
+
+.pdfEntryTitle.sapMTitle {
+    color: #111111 !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+    margin: 0 !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+
+.pdfEntrySubtitle.sapMText {
+    color: #2f2f2f !important;
+    font-size: 12px !important;
+    line-height: 1.45 !important;
+    display: block;
+    margin-top: 1px !important;
+}
+
+.pdfMetaText.sapMText {
+    color: #444444 !important;
+    font-size: 11.5px !important;
+    line-height: 1.45 !important;
+    text-align: right !important;
+    display: block;
+}
+
+.pdfEntryDescription.sapMText {
+    margin-top: 5px !important;
+    display: block;
+}
+
+.pdfTechText.sapMText {
+    color: #333333 !important;
+    font-size: 11.5px !important;
+    line-height: 1.45 !important;
+    margin-top: 4px !important;
+    font-style: italic;
+    display: block;
+}
 
 @media (max-width: 900px) {
     .cvHeroInner.sapMHBox {
