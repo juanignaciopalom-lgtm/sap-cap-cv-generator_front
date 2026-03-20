@@ -14,6 +14,29 @@
     >
         <content>
             <VBox id="screenContainer">
+
+                <!--  ═══ RECRUITER BANNER ═══  -->
+                <VBox class="cvSnapSection">
+                    <VBox class="cvSection">
+                        <MessageStrip
+                            text="¿Sos recruiter o representás una empresa? Podés dejar tus datos para contactarte en futuras oportunidades."
+                            type="Information"
+                            showIcon="true"
+                            showCloseButton="false"
+                        />
+                        <HBox
+                            justifyContent="End"
+                            class="sapUiSmallMarginTop"
+                        >
+                            <Button
+                                text="Dejar datos"
+                                type="Emphasized"
+                                press="onOpenRecruiterLeadDialog"
+                            />
+                        </HBox>
+                    </VBox>
+                </VBox>
+
                 <!--  ═══ HERO ═══  -->
                 <VBox class="cvSnapSection">
                     <VBox class="cvHero">

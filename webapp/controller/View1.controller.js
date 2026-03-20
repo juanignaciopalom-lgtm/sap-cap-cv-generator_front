@@ -5,12 +5,17 @@ sap.ui.define([
     "sap/ui/model/Filter",
     "sap/ui/model/FilterOperator",
     "sap/m/MessageToast",
+    "sap/m/MessageBox",
     "sap/m/Dialog",
     "sap/m/Button",
     "sap/m/VBox",
     "sap/m/HBox",
     "sap/m/Text",
     "sap/m/Title",
+    "sap/m/Label",
+    "sap/m/Input",
+    "sap/m/TextArea",
+    "sap/m/CheckBox",
     "sap/ui/core/Icon"
 ], function (
     Controller,
@@ -19,12 +24,17 @@ sap.ui.define([
     Filter,
     FilterOperator,
     MessageToast,
+    MessageBox,
     Dialog,
     Button,
     VBox,
     HBox,
     Text,
     Title,
+    Label,
+    Input,
+    TextArea,
+    CheckBox,
     Icon
 ) {
     "use strict";
@@ -45,6 +55,17 @@ sap.ui.define([
                 languages: []
             });
             oView.setModel(oLocalModel, "cv");
+
+            var oLeadModel = new JSONModel({
+                fullName: "",
+                email: "",
+                company: "",
+                phone: "",
+                role: "",
+                message: "",
+                consentAccepted: false
+            });
+            oView.setModel(oLeadModel, "lead");
 
             var oODataModel = new ODataModel({
                 serviceUrl: "/api/public/",
@@ -393,6 +414,195 @@ sap.ui.define([
             return y;
         },
 
+        _resetLeadModel: function () {
+            this.getView().getModel("lead").setData({
+                fullName: "",
+                email: "",
+                company: "",
+                phone: "",
+                role: "",
+                message: "",
+                consentAccepted: false
+            });
+        },
+
+        onOpenRecruiterLeadDialog: function () {
+            if (!this._oRecruiterLeadDialog) {
+                this._oRecruiterLeadDialog = this._createRecruiterLeadDialog();
+                this.getView().addDependent(this._oRecruiterLeadDialog);
+            }
+
+            this._resetLeadModel();
+            this._oRecruiterLeadDialog.open();
+        },
+
+        _createRecruiterLeadDialog: function () {
+            var oDialog = new Dialog({
+                title: "Datos de contacto",
+                contentWidth: "520px",
+                horizontalScrolling: false,
+                verticalScrolling: true,
+                content: [
+                    new VBox({
+                        items: [
+                            new Text({
+                                text: "Si representás una empresa o sos recruiter, podés dejar tus datos para que te contacte."
+                            }).addStyleClass("sapUiSmallMarginBottom"),
+
+                            new Label({ text: "Nombre y apellido *" }),
+                            new Input({
+                                value: "{lead>/fullName}",
+                                placeholder: "Ej: Ana Pérez"
+                            }),
+
+                            new Label({
+                                text: "Email *"
+                            }).addStyleClass("sapUiSmallMarginTop"),
+                            new Input({
+                                value: "{lead>/email}",
+                                type: "Email",
+                                placeholder: "Ej: ana@empresa.com"
+                            }),
+
+                            new Label({
+                                text: "Empresa *"
+                            }).addStyleClass("sapUiSmallMarginTop"),
+                            new Input({
+                                value: "{lead>/company}",
+                                placeholder: "Ej: Mercado Libre"
+                            }),
+
+                            new Label({
+                                text: "Teléfono"
+                            }).addStyleClass("sapUiSmallMarginTop"),
+                            new Input({
+                                value: "{lead>/phone}",
+                                placeholder: "Ej: +54 9 11 ..."
+                            }),
+
+                            new Label({
+                                text: "Rol / cargo"
+                            }).addStyleClass("sapUiSmallMarginTop"),
+                            new Input({
+                                value: "{lead>/role}",
+                                placeholder: "Ej: Recruiter IT"
+                            }),
+
+                            new Label({
+                                text: "Mensaje"
+                            }).addStyleClass("sapUiSmallMarginTop"),
+                            new TextArea({
+                                value: "{lead>/message}",
+                                rows: 4,
+                                growing: true,
+                                growingMaxLines: 6,
+                                placeholder: "Opcional"
+                            }),
+
+                            new CheckBox({
+                                selected: "{lead>/consentAccepted}",
+                                text: "Acepto ser contactado con fines profesionales."
+                            }).addStyleClass("sapUiSmallMarginTop")
+                        ]
+                    }).addStyleClass("sapUiContentPadding")
+                ],
+                beginButton: new Button({
+                    text: "Enviar",
+                    type: "Emphasized",
+                    press: this.onSubmitRecruiterLead.bind(this)
+                }),
+                endButton: new Button({
+                    text: "Cancelar",
+                    press: function () {
+                        oDialog.close();
+                    }
+                })
+            });
+
+            return oDialog;
+        },
+
+        _validateLeadData: function (oLeadData) {
+            var sEmail = (oLeadData.email || "").trim();
+
+            if (!(oLeadData.fullName || "").trim()) {
+                MessageBox.warning("Completá el nombre y apellido.");
+                return false;
+            }
+
+            if (!sEmail) {
+                MessageBox.warning("Completá el email.");
+                return false;
+            }
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sEmail)) {
+                MessageBox.warning("Ingresá un email válido.");
+                return false;
+            }
+
+            if (!(oLeadData.company || "").trim()) {
+                MessageBox.warning("Completá la empresa.");
+                return false;
+            }
+
+            if (!oLeadData.consentAccepted) {
+                MessageBox.warning("Tenés que aceptar el consentimiento para ser contactado.");
+                return false;
+            }
+
+            return true;
+        },
+
+        onSubmitRecruiterLead: async function () {
+            var oLeadData = Object.assign({}, this.getView().getModel("lead").getData());
+
+            if (!this._validateLeadData(oLeadData)) {
+                return;
+            }
+
+            try {
+                var oOperationModel = new ODataModel({
+                    serviceUrl: "/api/public/",
+                    synchronizationMode: "None",
+                    operationMode: "Server",
+                    autoExpandSelect: true
+                });
+
+                var oAction = oOperationModel.bindContext("/submitRecruiterLead(...)");
+
+                oAction.setParameter("fullName", oLeadData.fullName || "");
+                oAction.setParameter("email", oLeadData.email || "");
+                oAction.setParameter("company", oLeadData.company || "");
+                oAction.setParameter("phone", oLeadData.phone || "");
+                oAction.setParameter("role", oLeadData.role || "");
+                oAction.setParameter("message", oLeadData.message || "");
+                oAction.setParameter("consentAccepted", !!oLeadData.consentAccepted);
+                oAction.setParameter("source", "CV_APP_UI");
+
+                await oAction.execute();
+
+                var oResult = oAction.getBoundContext()
+                    ? oAction.getBoundContext().getObject()
+                    : null;
+
+                MessageToast.show(
+                    (oResult && oResult.message) || "Tus datos fueron registrados correctamente."
+                );
+
+                if (this._oRecruiterLeadDialog) {
+                    this._oRecruiterLeadDialog.close();
+                }
+
+                this._resetLeadModel();
+
+            } catch (oError) {
+                console.error("Error al enviar lead:", oError);
+                MessageBox.error(
+                    (oError && oError.message) || "No se pudo registrar la información."
+                );
+            }
+        },
+
         onDownloadProfessionalPDF: function () {
             try {
                 if (!window.jspdf || !window.jspdf.jsPDF) {
@@ -450,7 +660,6 @@ sap.ui.define([
                     }.bind(this));
                 }.bind(this);
 
-                // HEADER
                 pdf.setFont("times", "bold");
                 pdf.setFontSize(18);
                 pdf.text(
@@ -482,7 +691,6 @@ sap.ui.define([
                     y += 8;
                 }
 
-                // LINKS
                 var aLinks = [
                     this._sanitizeText(profile.linkedinUrl),
                     this._sanitizeText(profile.githubUrl)
@@ -494,7 +702,6 @@ sap.ui.define([
                     y += 2;
                 }
 
-                // SUMMARY
                 if (profile.summary) {
                     drawSectionTitle("Sobre mi");
                     pdf.setFont("times", "normal");
@@ -510,7 +717,6 @@ sap.ui.define([
                     y += 2;
                 }
 
-                // SKILLS
                 if (skills.length) {
                     drawSectionTitle("Skills");
 
@@ -552,7 +758,6 @@ sap.ui.define([
                     }
                 }
 
-                // EXPERIENCE
                 if (experiences.length) {
                     drawSectionTitle("Trayectoria profesional");
 
@@ -619,7 +824,6 @@ sap.ui.define([
                     }.bind(this));
                 }
 
-                // EDUCATION
                 if (education.length) {
                     drawSectionTitle("Educación");
 
@@ -651,7 +855,6 @@ sap.ui.define([
                     }.bind(this));
                 }
 
-                // CERTIFICATIONS
                 if (certifications.length) {
                     drawSectionTitle("Capacitaciones");
 
@@ -679,7 +882,6 @@ sap.ui.define([
                     }.bind(this));
                 }
 
-                // LANGUAGES
                 if (languages.length) {
                     drawSectionTitle("Idiomas");
 
