@@ -37,6 +37,7 @@ sap.ui.define([
                 education: [],
                 certifications: [],
                 languages: [],
+                recruiterLeads: [],
                 busy: false
             });
 
@@ -92,71 +93,216 @@ sap.ui.define([
 
                 const data = await res.json();
 
-                if (!data || !data.value || data.value.length === 0) {
-                    return;
-                }
+                if (data && data.value && data.value.length > 0) {
+                    const oRaw = data.value[0];
+                    this._profileId = oRaw.ID;
 
-                const oRaw = data.value[0];
-                this._profileId = oRaw.ID;
+                    const oModel = this.getView().getModel("wizard");
 
-                const oModel = this.getView().getModel("wizard");
+                    const aAllowed = [
+                        "firstName", "lastName", "title", "summary", "email",
+                        "phone", "location", "linkedinUrl", "githubUrl", "photoUrl"
+                    ];
 
-                const aAllowed = [
-                    "firstName", "lastName", "title", "summary", "email",
-                    "phone", "location", "linkedinUrl", "githubUrl", "photoUrl"
-                ];
-
-                const oProfile = {};
-                aAllowed.forEach(function (sField) {
-                    oProfile[sField] = oRaw[sField] || "";
-                });
-
-                oModel.setProperty("/profile", oProfile);
-
-                const aEntities = ["Skills", "Experiences", "Projects", "Education", "Certifications", "Languages"];
-                const aKeys = ["skills", "experiences", "projects", "education", "certifications", "languages"];
-
-                for (let i = 0; i < aEntities.length; i++) {
-                    const sEntity = aEntities[i];
-                    const sKey = aKeys[i];
-
-                    const resEntity = await fetch(`${BASE_URL}/${sEntity}?$filter=profile_ID eq ${this._profileId}`, {
-                        method: "GET",
-                        credentials: "same-origin"
+                    const oProfile = {};
+                    aAllowed.forEach(function (sField) {
+                        oProfile[sField] = oRaw[sField] || "";
                     });
 
-                    if (resEntity.status === 401 || resEntity.status === 403) {
-                        window.location.replace("/admin#/wizard");
-                        return;
+                    oModel.setProperty("/profile", oProfile);
+
+                    const aEntities = ["Skills", "Experiences", "Projects", "Education", "Certifications", "Languages"];
+                    const aKeys = ["skills", "experiences", "projects", "education", "certifications", "languages"];
+
+                    for (let i = 0; i < aEntities.length; i++) {
+                        const sEntity = aEntities[i];
+                        const sKey = aKeys[i];
+
+                        const resEntity = await fetch(`${BASE_URL}/${sEntity}?$filter=profile_ID eq ${this._profileId}`, {
+                            method: "GET",
+                            credentials: "same-origin"
+                        });
+
+                        if (resEntity.status === 401 || resEntity.status === 403) {
+                            window.location.replace("/admin#/wizard");
+                            return;
+                        }
+
+                        if (!resEntity.ok) {
+                            const sErrorText = await resEntity.text();
+                            throw new Error(sErrorText);
+                        }
+
+                        const sEntityContentType = resEntity.headers.get("content-type") || "";
+                        if (!sEntityContentType.includes("application/json")) {
+                            const sRaw = await resEntity.text();
+                            throw new Error("La API devolvió HTML en vez de JSON para " + sEntity + ": " + sRaw.substring(0, 120));
+                        }
+
+                        const result = await resEntity.json();
+
+                        const aItems = (result.value || []).map(item => {
+                            const oClean = this._cleanItem(item);
+                            oClean.ID = item.ID;
+                            oClean.__state = "saved";
+                            return oClean;
+                        });
+
+                        oModel.setProperty(`/${sKey}`, aItems);
                     }
-
-                    if (!resEntity.ok) {
-                        const sErrorText = await resEntity.text();
-                        throw new Error(sErrorText);
-                    }
-
-                    const sEntityContentType = resEntity.headers.get("content-type") || "";
-                    if (!sEntityContentType.includes("application/json")) {
-                        const sRaw = await resEntity.text();
-                        throw new Error("La API devolvió HTML en vez de JSON para " + sEntity + ": " + sRaw.substring(0, 120));
-                    }
-
-                    const result = await resEntity.json();
-
-                    const aItems = (result.value || []).map(item => {
-                        const oClean = this._cleanItem(item);
-                        oClean.ID = item.ID;
-                        oClean.__state = "saved";
-                        return oClean;
-                    });
-
-                    oModel.setProperty(`/${sKey}`, aItems);
                 }
+
+                await this._loadRecruiterLeads();
 
             } catch (err) {
                 console.error("Error cargando datos existentes:", err);
                 MessageBox.error("Error cargando datos existentes: " + err.message);
             }
+        },
+
+        _loadRecruiterLeads: async function () {
+            const oModel = this.getView().getModel("wizard");
+
+            const res = await fetch(`${BASE_URL}/RecruiterLeads?$orderby=createdAt desc`, {
+                method: "GET",
+                credentials: "same-origin"
+            });
+
+            if (res.status === 401 || res.status === 403) {
+                window.location.replace("/admin#/wizard");
+                return;
+            }
+
+            if (!res.ok) {
+                const sErrorText = await res.text();
+                throw new Error("Error cargando leads: " + sErrorText);
+            }
+
+            const sContentType = res.headers.get("content-type") || "";
+            if (!sContentType.includes("application/json")) {
+                const sRaw = await res.text();
+                throw new Error("La API devolvió HTML en vez de JSON para RecruiterLeads: " + sRaw.substring(0, 120));
+            }
+
+            const result = await res.json();
+
+            const aLeads = (result.value || []).map(function (oLead) {
+                const sStatus = oLead.status || "NEW";
+
+                return Object.assign({}, oLead, {
+                    createdAtFormatted: this._formatDateTime(oLead.createdAt),
+                    statusState: this._mapLeadStatusState(sStatus)
+                });
+            }.bind(this));
+
+            oModel.setProperty("/recruiterLeads", aLeads);
+        },
+
+        _mapLeadStatusState: function (sStatus) {
+            switch (sStatus) {
+                case "CONTACTED":
+                    return "Success";
+                case "DISCARDED":
+                    return "Error";
+                case "NEW":
+                default:
+                    return "Warning";
+            }
+        },
+
+        _formatDateTime: function (vDate) {
+            if (!vDate) {
+                return "";
+            }
+
+            const oDate = new Date(vDate);
+            if (isNaN(oDate.getTime())) {
+                return String(vDate);
+            }
+
+            const sDay = String(oDate.getDate()).padStart(2, "0");
+            const sMonth = String(oDate.getMonth() + 1).padStart(2, "0");
+            const sYear = oDate.getFullYear();
+            const sHours = String(oDate.getHours()).padStart(2, "0");
+            const sMinutes = String(oDate.getMinutes()).padStart(2, "0");
+
+            return `${sDay}/${sMonth}/${sYear} ${sHours}:${sMinutes}`;
+        },
+
+        onMarkLeadAsContacted: function (oEvent) {
+            const oCtx = oEvent.getSource().getBindingContext("wizard");
+            const oLead = oCtx.getObject();
+
+            MessageBox.confirm(`¿Marcar como contactado a "${oLead.fullName}"?`, {
+                onClose: async (sAction) => {
+                    if (sAction !== MessageBox.Action.OK) {
+                        return;
+                    }
+
+                    try {
+                        const sToken = await this._fetchCsrfToken();
+
+                        const res = await fetch(`${BASE_URL}/markLeadAsContacted`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "x-csrf-token": sToken
+                            },
+                            credentials: "same-origin",
+                            body: JSON.stringify({ ID: oLead.ID })
+                        });
+
+                        if (!res.ok) {
+                            const sErrorText = await res.text();
+                            throw new Error(sErrorText);
+                        }
+
+                        const data = await res.json();
+                        MessageToast.show(data.message || "Lead marcado como contactado.");
+                        await this._loadRecruiterLeads();
+                    } catch (err) {
+                        MessageBox.error("No se pudo actualizar el lead: " + err.message);
+                    }
+                }
+            });
+        },
+
+        onDiscardLead: function (oEvent) {
+            const oCtx = oEvent.getSource().getBindingContext("wizard");
+            const oLead = oCtx.getObject();
+
+            MessageBox.confirm(`¿Descartar a "${oLead.fullName}"?`, {
+                onClose: async (sAction) => {
+                    if (sAction !== MessageBox.Action.OK) {
+                        return;
+                    }
+
+                    try {
+                        const sToken = await this._fetchCsrfToken();
+
+                        const res = await fetch(`${BASE_URL}/discardLead`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "x-csrf-token": sToken
+                            },
+                            credentials: "same-origin",
+                            body: JSON.stringify({ ID: oLead.ID })
+                        });
+
+                        if (!res.ok) {
+                            const sErrorText = await res.text();
+                            throw new Error(sErrorText);
+                        }
+
+                        const data = await res.json();
+                        MessageToast.show(data.message || "Lead descartado.");
+                        await this._loadRecruiterLeads();
+                    } catch (err) {
+                        MessageBox.error("No se pudo actualizar el lead: " + err.message);
+                    }
+                }
+            });
         },
 
         onNext: function () {
@@ -189,8 +335,8 @@ sap.ui.define([
         _updateButtons: function () {
             const iStep = this._currentStep;
             this.byId("btnBack").setVisible(iStep > 1);
-            this.byId("btnNext").setVisible(iStep < 7);
-            this.byId("btnFinish").setVisible(iStep === 7);
+            this.byId("btnNext").setVisible(iStep < 8);
+            this.byId("btnFinish").setVisible(iStep === 8);
         },
 
         _validateStep: function (iStep) {
@@ -217,6 +363,7 @@ sap.ui.define([
                     this._saveCollection("certifications"),
                     this._saveCollection("languages")
                 ]))
+                .then(() => this._loadRecruiterLeads())
                 .then(() => {
                     oModel.setProperty("/busy", false);
                     MessageBox.success("🎉 CV guardado correctamente!", {

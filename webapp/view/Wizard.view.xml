@@ -21,7 +21,6 @@
                 stepActivate=".onStepActivate"
                 complete=".onWizardComplete">
 
-                <!-- ═══ PASO 1: PERFIL ═══ -->
                 <WizardStep
                     id="stepProfile"
                     title="Perfil"
@@ -32,7 +31,6 @@
                         type="XML"/>
                 </WizardStep>
 
-                <!-- ═══ PASO 2: SKILLS ═══ -->
                 <WizardStep
                     id="stepSkills"
                     title="Skills"
@@ -43,7 +41,6 @@
                         type="XML"/>
                 </WizardStep>
 
-                <!-- ═══ PASO 3: EXPERIENCIA ═══ -->
                 <WizardStep
                     id="stepExperience"
                     title="Experiencia"
@@ -54,7 +51,6 @@
                         type="XML"/>
                 </WizardStep>
 
-                <!-- ═══ PASO 4: PROYECTOS ═══ -->
                 <WizardStep
                     id="stepProjects"
                     title="Proyectos"
@@ -65,7 +61,6 @@
                         type="XML"/>
                 </WizardStep>
 
-                <!-- ═══ PASO 5: EDUCACIÓN ═══ -->
                 <WizardStep
                     id="stepEducation"
                     title="Educación"
@@ -76,7 +71,6 @@
                         type="XML"/>
                 </WizardStep>
 
-                <!-- ═══ PASO 6: CERTIFICACIONES ═══ -->
                 <WizardStep
                     id="stepCertifications"
                     title="Certificaciones"
@@ -87,7 +81,6 @@
                         type="XML"/>
                 </WizardStep>
 
-                <!-- ═══ PASO 7: IDIOMAS ═══ -->
                 <WizardStep
                     id="stepLanguages"
                     title="Idiomas"
@@ -98,10 +91,96 @@
                         type="XML"/>
                 </WizardStep>
 
+                <WizardStep
+                    id="stepLeads"
+                    title="Leads"
+                    icon="sap-icon://customer"
+                    complete="false">
+                    <VBox class="sapUiMediumMargin">
+                        <Title
+                            text="Contactos recibidos"
+                            level="H3" />
+
+                        <Text
+                            text="Listado de recruiters o empresas que dejaron sus datos desde la app pública."
+                            class="sapUiSmallMarginBottom" />
+
+                        <Table
+                            id="tblRecruiterLeads"
+                            items="{wizard>/recruiterLeads}"
+                            inset="false"
+                            sticky="ColumnHeaders"
+                            growing="true"
+                            growingScrollToLoad="true"
+                            width="100%">
+
+                            <columns>
+                                <Column width="9rem">
+                                    <Text text="Fecha" />
+                                </Column>
+                                <Column width="12rem">
+                                    <Text text="Nombre" />
+                                </Column>
+                                <Column width="14rem">
+                                    <Text text="Email" />
+                                </Column>
+                                <Column width="12rem">
+                                    <Text text="Empresa" />
+                                </Column>
+                                <Column width="10rem">
+                                    <Text text="Teléfono" />
+                                </Column>
+                                <Column width="10rem">
+                                    <Text text="Rol" />
+                                </Column>
+                                <Column width="10rem">
+                                    <Text text="Estado" />
+                                </Column>
+                                <Column>
+                                    <Text text="Mensaje" />
+                                </Column>
+                                <Column width="14rem">
+                                    <Text text="Acciones" />
+                                </Column>
+                            </columns>
+
+                            <items>
+                                <ColumnListItem vAlign="Top">
+                                    <cells>
+                                        <Text text="{wizard>createdAtFormatted}" />
+                                        <Text text="{wizard>fullName}" wrapping="true" />
+                                        <Text text="{wizard>email}" wrapping="true" />
+                                        <Text text="{wizard>company}" wrapping="true" />
+                                        <Text text="{wizard>phone}" wrapping="true" />
+                                        <Text text="{wizard>role}" wrapping="true" />
+                                        <ObjectStatus
+                                            text="{wizard>status}"
+                                            state="{wizard>statusState}" />
+                                        <Text text="{wizard>message}" wrapping="true" />
+                                        <HBox wrap="Wrap">
+                                            <Button
+                                                text="Contactado"
+                                                type="Success"
+                                                class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
+                                                press=".onMarkLeadAsContacted"
+                                                visible="{= ${wizard>status} !== 'CONTACTED' }" />
+                                            <Button
+                                                text="Descartar"
+                                                type="Reject"
+                                                class="sapUiTinyMarginBottom"
+                                                press=".onDiscardLead"
+                                                visible="{= ${wizard>status} !== 'DISCARDED' }" />
+                                        </HBox>
+                                    </cells>
+                                </ColumnListItem>
+                            </items>
+                        </Table>
+                    </VBox>
+                </WizardStep>
+
             </Wizard>
         </content>
 
-        <!-- Footer con navegación -->
         <footer>
             <OverflowToolbar>
                 <ToolbarSpacer/>
