@@ -12,7 +12,23 @@
         title="Editor de CV"
         showNavButton="false"
         backgroundDesign="Solid"
-        showFooter="true">
+        showFooter="true"
+        busy="{wizard>/busy}">
+
+        <customHeader>
+            <Bar>
+                <contentLeft>
+                    <Title text="Editor de CV" level="H3" />
+                </contentLeft>
+                <contentRight>
+                    <Button
+                        text="Logout"
+                        icon="sap-icon://log"
+                        type="Transparent"
+                        press=".onLogout" />
+                </contentRight>
+            </Bar>
+        </customHeader>
 
         <content>
             <Wizard
@@ -96,56 +112,130 @@
                     title="Leads"
                     icon="sap-icon://customer"
                     complete="false">
-                    <VBox class="sapUiMediumMargin">
-                        <Title
-                            text="Contactos recibidos"
-                            level="H3" />
 
-                        <Text
-                            text="Listado de recruiters o empresas que dejaron sus datos desde la app pública."
-                            class="sapUiSmallMarginBottom" />
+                    <VBox class="sapUiMediumMargin recruiterLeadsSection">
+
+                        <HBox
+                            class="sapUiSmallMarginBottom recruiterLeadsHeader"
+                            alignItems="Center"
+                            justifyContent="SpaceBetween"
+                            wrap="Wrap">
+
+                            <VBox class="recruiterLeadsHeaderText">
+                                <Title
+                                    text="Contactos recibidos"
+                                    level="H3" />
+                                <Text
+                                    text="Listado de recruiters o empresas que dejaron sus datos desde la app pública."
+                                    class="sapUiTinyMarginTop" />
+                            </VBox>
+
+                            <HBox
+                                class="recruiterLeadsFilterBox sapUiTinyMarginTop"
+                                alignItems="Center"
+                                wrap="Wrap">
+                                <Label
+                                    text="Filtrar por"
+                                    labelFor="selectLeadFilter"
+                                    class="sapUiTinyMarginEnd sapUiTinyMarginTop" />
+                                <Select
+                                    id="selectLeadFilter"
+                                    selectedKey="{wizard>/leadFilter}"
+                                    change=".onLeadFilterChange"
+                                    width="13rem"
+                                    class="sapUiTinyMarginTop">
+                                    <items>
+                                        <core:Item key="ACTIVE" text="Activos" />
+                                        <core:Item key="NEW" text="Nuevos" />
+                                        <core:Item key="BPA_TRIGGERED" text="BPA disparados" />
+                                        <core:Item key="BPA_FAILED" text="BPA fallidos" />
+                                        <core:Item key="CONTACTED" text="Contactados" />
+                                        <core:Item key="DISCARDED" text="Descartados" />
+                                        <core:Item key="ALL" text="Todos" />
+                                    </items>
+                                </Select>
+                            </HBox>
+                        </HBox>
 
                         <Table
                             id="tblRecruiterLeads"
+                            class="recruiterLeadsTable"
                             items="{wizard>/recruiterLeads}"
                             inset="false"
                             sticky="ColumnHeaders"
                             growing="true"
                             growingScrollToLoad="true"
-                            width="100%">
+                            width="100%"
+                            autoPopinMode="true">
 
                             <columns>
-                                <Column width="9rem">
+                                <Column
+                                    width="9rem"
+                                    minScreenWidth="Tablet"
+                                    demandPopin="true">
                                     <Text text="Fecha" />
                                 </Column>
+
                                 <Column width="12rem">
                                     <Text text="Nombre" />
                                 </Column>
-                                <Column width="14rem">
+
+                                <Column
+                                    width="14rem"
+                                    minScreenWidth="Tablet"
+                                    demandPopin="true">
                                     <Text text="Email" />
                                 </Column>
-                                <Column width="12rem">
+
+                                <Column
+                                    width="12rem"
+                                    minScreenWidth="Tablet"
+                                    demandPopin="true">
                                     <Text text="Empresa" />
                                 </Column>
-                                <Column width="10rem">
+
+                                <Column
+                                    width="10rem"
+                                    minScreenWidth="Desktop"
+                                    demandPopin="true">
                                     <Text text="Teléfono" />
                                 </Column>
-                                <Column width="10rem">
+
+                                <Column
+                                    width="10rem"
+                                    minScreenWidth="Desktop"
+                                    demandPopin="true">
                                     <Text text="Rol" />
                                 </Column>
-                                <Column width="10rem">
+
+                                <Column width="11rem">
                                     <Text text="Estado" />
                                 </Column>
-                                <Column>
+
+                                <Column
+                                    width="14rem"
+                                    minScreenWidth="Desktop"
+                                    demandPopin="true">
+                                    <Text text="Error BPA" />
+                                </Column>
+
+                                <Column
+                                    minScreenWidth="Tablet"
+                                    demandPopin="true">
                                     <Text text="Mensaje" />
                                 </Column>
-                                <Column width="14rem">
+
+                                <Column width="24rem">
                                     <Text text="Acciones" />
                                 </Column>
                             </columns>
 
                             <items>
-                                <ColumnListItem vAlign="Top">
+                                <ColumnListItem
+                                    vAlign="Top"
+                                    type="Inactive"
+                                    class="recruiterLeadRow">
+
                                     <cells>
                                         <Text text="{wizard>createdAtFormatted}" />
                                         <Text text="{wizard>fullName}" wrapping="true" />
@@ -153,23 +243,52 @@
                                         <Text text="{wizard>company}" wrapping="true" />
                                         <Text text="{wizard>phone}" wrapping="true" />
                                         <Text text="{wizard>role}" wrapping="true" />
+
                                         <ObjectStatus
-                                            text="{wizard>status}"
-                                            state="{wizard>statusState}" />
+                                            text="{wizard>statusText}"
+                                            state="{wizard>statusState}"
+                                            class="leadStatusBadge" />
+
+                                        <Text text="{wizard>bpaErrorMessage}" wrapping="true" />
                                         <Text text="{wizard>message}" wrapping="true" />
-                                        <HBox wrap="Wrap">
+
+                                        <HBox
+                                            wrap="Wrap"
+                                            class="leadActionsBox">
+
+                                            <Button
+                                                text="Enviar a BPA"
+                                                type="Emphasized"
+                                                class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
+                                                press=".onTriggerLeadBpa"
+                                                visible="{= ${wizard>status} === 'NEW' }" />
+
+                                            <Button
+                                                text="Reintentar BPA"
+                                                type="Attention"
+                                                class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
+                                                press=".onRetryLeadBpa"
+                                                visible="{= ${wizard>status} === 'BPA_FAILED' }" />
+
                                             <Button
                                                 text="Contactado"
                                                 type="Success"
                                                 class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
                                                 press=".onMarkLeadAsContacted"
                                                 visible="{= ${wizard>status} !== 'CONTACTED' }" />
+
                                             <Button
                                                 text="Descartar"
                                                 type="Reject"
-                                                class="sapUiTinyMarginBottom"
+                                                class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
                                                 press=".onDiscardLead"
                                                 visible="{= ${wizard>status} !== 'DISCARDED' }" />
+
+                                            <Button
+                                                text="Eliminar"
+                                                type="Negative"
+                                                class="sapUiTinyMarginBottom"
+                                                press=".onDeleteLead" />
                                         </HBox>
                                     </cells>
                                 </ColumnListItem>

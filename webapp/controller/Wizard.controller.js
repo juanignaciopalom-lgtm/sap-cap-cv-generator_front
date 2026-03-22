@@ -27,9 +27,16 @@ sap.ui.define([
 
             const oModel = new JSONModel({
                 profile: {
-                    firstName: "", lastName: "", title: "",
-                    summary: "", email: "", phone: "",
-                    location: "", linkedinUrl: "", githubUrl: "", photoUrl: ""
+                    firstName: "",
+                    lastName: "",
+                    title: "",
+                    summary: "",
+                    email: "",
+                    phone: "",
+                    location: "",
+                    linkedinUrl: "",
+                    githubUrl: "",
+                    photoUrl: ""
                 },
                 skills: [],
                 experiences: [],
@@ -38,11 +45,17 @@ sap.ui.define([
                 certifications: [],
                 languages: [],
                 recruiterLeads: [],
+                recruiterLeadsRaw: [],
+                leadFilter: "ACTIVE",
                 busy: false
             });
 
             this.getView().setModel(oModel, "wizard");
             this._loadExistingData();
+        },
+
+        _setBusy: function (bBusy) {
+            this.getView().getModel("wizard").setProperty("/busy", bBusy);
         },
 
         _fetchCsrfToken: function () {
@@ -52,7 +65,7 @@ sap.ui.define([
                     "x-csrf-token": "Fetch"
                 },
                 credentials: "same-origin"
-            }).then(res => {
+            }).then(function (res) {
                 if (res.status === 401 || res.status === 403) {
                     const oError = new Error("No autorizado");
                     oError.status = res.status;
@@ -118,7 +131,7 @@ sap.ui.define([
                         const sEntity = aEntities[i];
                         const sKey = aKeys[i];
 
-                        const resEntity = await fetch(`${BASE_URL}/${sEntity}?$filter=profile_ID eq ${this._profileId}`, {
+                        const resEntity = await fetch(`${BASE_URL}/${sEntity}`, {
                             method: "GET",
                             credentials: "same-origin"
                         });
@@ -141,12 +154,16 @@ sap.ui.define([
 
                         const result = await resEntity.json();
 
-                        const aItems = (result.value || []).map(item => {
-                            const oClean = this._cleanItem(item);
-                            oClean.ID = item.ID;
-                            oClean.__state = "saved";
-                            return oClean;
-                        });
+                        const aItems = (result.value || [])
+                            .filter(function (item) {
+                                return item.profile_ID === this._profileId;
+                            }.bind(this))
+                            .map(function (item) {
+                                const oClean = this._cleanItem(item);
+                                oClean.ID = item.ID;
+                                oClean.__state = "saved";
+                                return oClean;
+                            }.bind(this));
 
                         oModel.setProperty(`/${sKey}`, aItems);
                     }
@@ -191,11 +208,38 @@ sap.ui.define([
 
                 return Object.assign({}, oLead, {
                     createdAtFormatted: this._formatDateTime(oLead.createdAt),
-                    statusState: this._mapLeadStatusState(sStatus)
+                    statusState: this._mapLeadStatusState(sStatus),
+                    statusText: this._mapLeadStatusText(sStatus)
                 });
             }.bind(this));
 
-            oModel.setProperty("/recruiterLeads", aLeads);
+            oModel.setProperty("/recruiterLeadsRaw", aLeads);
+            this._applyLeadFilter(aLeads);
+        },
+
+        _applyLeadFilter: function (aLeads) {
+            const oModel = this.getView().getModel("wizard");
+            const sFilter = oModel.getProperty("/leadFilter") || "ACTIVE";
+
+            let aFiltered = aLeads || [];
+
+            if (sFilter === "ACTIVE") {
+                aFiltered = aFiltered.filter(function (oLead) {
+                    return oLead.status !== "DISCARDED";
+                });
+            } else if (sFilter !== "ALL") {
+                aFiltered = aFiltered.filter(function (oLead) {
+                    return oLead.status === sFilter;
+                });
+            }
+
+            oModel.setProperty("/recruiterLeads", aFiltered);
+        },
+
+        onLeadFilterChange: function () {
+            const oModel = this.getView().getModel("wizard");
+            const aLeads = oModel.getProperty("/recruiterLeadsRaw") || [];
+            this._applyLeadFilter(aLeads);
         },
 
         _mapLeadStatusState: function (sStatus) {
@@ -204,9 +248,29 @@ sap.ui.define([
                     return "Success";
                 case "DISCARDED":
                     return "Error";
+                case "BPA_TRIGGERED":
+                    return "Information";
+                case "BPA_FAILED":
+                    return "Error";
                 case "NEW":
                 default:
                     return "Warning";
+            }
+        },
+
+        _mapLeadStatusText: function (sStatus) {
+            switch (sStatus) {
+                case "CONTACTED":
+                    return "Contactado";
+                case "DISCARDED":
+                    return "Descartado";
+                case "BPA_TRIGGERED":
+                    return "BPA disparado";
+                case "BPA_FAILED":
+                    return "BPA falló";
+                case "NEW":
+                default:
+                    return "Nuevo";
             }
         },
 
@@ -229,41 +293,74 @@ sap.ui.define([
             return `${sDay}/${sMonth}/${sYear} ${sHours}:${sMinutes}`;
         },
 
-        onMarkLeadAsContacted: function (oEvent) {
+        _executeLeadAction: async function (sActionName, oLead, sSuccessMessage) {
+            const sToken = await this._fetchCsrfToken();
+
+            const res = await fetch(`${BASE_URL}/${sActionName}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-csrf-token": sToken
+                },
+                credentials: "same-origin",
+                body: JSON.stringify({ ID: oLead.ID })
+            });
+
+            if (!res.ok) {
+                const sErrorText = await res.text();
+                throw new Error(sErrorText);
+            }
+
+            const data = await res.json();
+            MessageToast.show(data.message || sSuccessMessage);
+            await this._loadRecruiterLeads();
+        },
+
+        onTriggerLeadBpa: function (oEvent) {
             const oCtx = oEvent.getSource().getBindingContext("wizard");
             const oLead = oCtx.getObject();
 
-            MessageBox.confirm(`¿Marcar como contactado a "${oLead.fullName}"?`, {
-                onClose: async (sAction) => {
+            MessageBox.confirm(`¿Enviar a BPA a "${oLead.fullName}"?`, {
+                actions: [MessageBox.Action.OK, MessageBox.Action.CANCEL],
+                emphasizedAction: MessageBox.Action.OK,
+                onClose: async function (sAction) {
                     if (sAction !== MessageBox.Action.OK) {
                         return;
                     }
 
                     try {
-                        const sToken = await this._fetchCsrfToken();
+                        this._setBusy(true);
+                        await this._executeLeadAction("triggerLeadBpa", oLead, "BPA disparado correctamente.");
+                    } catch (err) {
+                        MessageBox.error("No se pudo disparar BPA: " + err.message);
+                    } finally {
+                        this._setBusy(false);
+                    }
+                }.bind(this)
+            });
+        },
 
-                        const res = await fetch(`${BASE_URL}/markLeadAsContacted`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "x-csrf-token": sToken
-                            },
-                            credentials: "same-origin",
-                            body: JSON.stringify({ ID: oLead.ID })
-                        });
+        onMarkLeadAsContacted: function (oEvent) {
+            const oCtx = oEvent.getSource().getBindingContext("wizard");
+            const oLead = oCtx.getObject();
 
-                        if (!res.ok) {
-                            const sErrorText = await res.text();
-                            throw new Error(sErrorText);
-                        }
+            MessageBox.confirm(`¿Marcar como contactado a "${oLead.fullName}"?`, {
+                actions: [MessageBox.Action.OK, MessageBox.Action.CANCEL],
+                emphasizedAction: MessageBox.Action.OK,
+                onClose: async function (sAction) {
+                    if (sAction !== MessageBox.Action.OK) {
+                        return;
+                    }
 
-                        const data = await res.json();
-                        MessageToast.show(data.message || "Lead marcado como contactado.");
-                        await this._loadRecruiterLeads();
+                    try {
+                        this._setBusy(true);
+                        await this._executeLeadAction("markLeadAsContacted", oLead, "Lead marcado como contactado.");
                     } catch (err) {
                         MessageBox.error("No se pudo actualizar el lead: " + err.message);
+                    } finally {
+                        this._setBusy(false);
                     }
-                }
+                }.bind(this)
             });
         },
 
@@ -272,22 +369,72 @@ sap.ui.define([
             const oLead = oCtx.getObject();
 
             MessageBox.confirm(`¿Descartar a "${oLead.fullName}"?`, {
-                onClose: async (sAction) => {
+                actions: [MessageBox.Action.OK, MessageBox.Action.CANCEL],
+                emphasizedAction: MessageBox.Action.OK,
+                onClose: async function (sAction) {
                     if (sAction !== MessageBox.Action.OK) {
                         return;
                     }
 
                     try {
+                        this._setBusy(true);
+                        await this._executeLeadAction("discardLead", oLead, "Lead descartado.");
+                    } catch (err) {
+                        MessageBox.error("No se pudo actualizar el lead: " + err.message);
+                    } finally {
+                        this._setBusy(false);
+                    }
+                }.bind(this)
+            });
+        },
+
+        onRetryLeadBpa: function (oEvent) {
+            const oCtx = oEvent.getSource().getBindingContext("wizard");
+            const oLead = oCtx.getObject();
+
+            MessageBox.confirm(`¿Reintentar BPA para "${oLead.fullName}"?`, {
+                actions: [MessageBox.Action.OK, MessageBox.Action.CANCEL],
+                emphasizedAction: MessageBox.Action.OK,
+                onClose: async function (sAction) {
+                    if (sAction !== MessageBox.Action.OK) {
+                        return;
+                    }
+
+                    try {
+                        this._setBusy(true);
+                        await this._executeLeadAction("retryLeadBpa", oLead, "Reintento BPA ejecutado.");
+                    } catch (err) {
+                        MessageBox.error("No se pudo reintentar BPA: " + err.message);
+                    } finally {
+                        this._setBusy(false);
+                    }
+                }.bind(this)
+            });
+        },
+
+        onDeleteLead: function (oEvent) {
+            const oCtx = oEvent.getSource().getBindingContext("wizard");
+            const oLead = oCtx.getObject();
+
+            MessageBox.confirm(`¿Eliminar definitivamente a "${oLead.fullName}"? Esta acción no se puede deshacer.`, {
+                actions: [MessageBox.Action.OK, MessageBox.Action.CANCEL],
+                emphasizedAction: MessageBox.Action.CANCEL,
+                onClose: async function (sAction) {
+                    if (sAction !== MessageBox.Action.OK) {
+                        return;
+                    }
+
+                    try {
+                        this._setBusy(true);
+
                         const sToken = await this._fetchCsrfToken();
 
-                        const res = await fetch(`${BASE_URL}/discardLead`, {
-                            method: "POST",
+                        const res = await fetch(`${BASE_URL}/RecruiterLeads(${oLead.ID})`, {
+                            method: "DELETE",
                             headers: {
-                                "Content-Type": "application/json",
                                 "x-csrf-token": sToken
                             },
-                            credentials: "same-origin",
-                            body: JSON.stringify({ ID: oLead.ID })
+                            credentials: "same-origin"
                         });
 
                         if (!res.ok) {
@@ -295,18 +442,33 @@ sap.ui.define([
                             throw new Error(sErrorText);
                         }
 
-                        const data = await res.json();
-                        MessageToast.show(data.message || "Lead descartado.");
+                        MessageToast.show("Lead eliminado correctamente.");
                         await this._loadRecruiterLeads();
+
                     } catch (err) {
-                        MessageBox.error("No se pudo actualizar el lead: " + err.message);
+                        MessageBox.error("No se pudo eliminar el lead: " + err.message);
+                    } finally {
+                        this._setBusy(false);
                     }
-                }
+                }.bind(this)
             });
         },
 
+        onLogout: function () {
+            try {
+                sessionStorage.clear();
+                localStorage.clear();
+            } catch (e) {
+                // no-op
+            }
+
+            window.location.replace("/logout");
+        },
+
         onNext: function () {
-            if (!this._validateStep(this._currentStep)) return;
+            if (!this._validateStep(this._currentStep)) {
+                return;
+            }
 
             const oWizard = this.byId("wizard");
             const aSteps = oWizard.getSteps();
@@ -355,24 +517,28 @@ sap.ui.define([
             oModel.setProperty("/busy", true);
 
             this._saveProfile()
-                .then(() => Promise.all([
-                    this._saveCollection("skills"),
-                    this._saveCollection("experiences"),
-                    this._saveCollection("projects"),
-                    this._saveCollection("education"),
-                    this._saveCollection("certifications"),
-                    this._saveCollection("languages")
-                ]))
-                .then(() => this._loadRecruiterLeads())
-                .then(() => {
+                .then(function () {
+                    return Promise.all([
+                        this._saveCollection("skills"),
+                        this._saveCollection("experiences"),
+                        this._saveCollection("projects"),
+                        this._saveCollection("education"),
+                        this._saveCollection("certifications"),
+                        this._saveCollection("languages")
+                    ]);
+                }.bind(this))
+                .then(function () {
+                    return this._loadRecruiterLeads();
+                }.bind(this))
+                .then(function () {
                     oModel.setProperty("/busy", false);
                     MessageBox.success("🎉 CV guardado correctamente!", {
-                        onClose: () => {
+                        onClose: function () {
                             this.getOwnerComponent().getRouter().navTo("RouteView1");
-                        }
+                        }.bind(this)
                     });
-                })
-                .catch(err => {
+                }.bind(this))
+                .catch(function (err) {
                     oModel.setProperty("/busy", false);
 
                     if (err && (err.status === 401 || err.status === 403)) {
@@ -393,7 +559,7 @@ sap.ui.define([
             ];
 
             const oProfile = {};
-            aAllowed.forEach(sField => {
+            aAllowed.forEach(function (sField) {
                 oProfile[sField] = oRaw[sField] || null;
             });
 
@@ -403,7 +569,7 @@ sap.ui.define([
                 : `${BASE_URL}/Profile`;
 
             return this._fetchCsrfToken()
-                .then(sToken => {
+                .then(function (sToken) {
                     return fetch(sUrl, {
                         method: sMethod,
                         headers: {
@@ -414,38 +580,44 @@ sap.ui.define([
                         body: JSON.stringify(oProfile)
                     });
                 })
-                .then(res => {
+                .then(function (res) {
                     if (res.status === 401 || res.status === 403) {
                         const oError = new Error("No autorizado");
                         oError.status = res.status;
                         throw oError;
                     }
                     if (!res.ok) {
-                        return res.text().then(t => { throw new Error(t); });
+                        return res.text().then(function (t) {
+                            throw new Error(t);
+                        });
                     }
                     return res.json();
-                })
-                .then(data => {
+                }.bind(this))
+                .then(function (data) {
                     if (data && data.ID) {
                         this._profileId = data.ID;
                     }
-                });
+                }.bind(this));
         },
 
         _saveCollection: function (sEntity) {
-            if (!this._profileId) return Promise.resolve();
+            if (!this._profileId) {
+                return Promise.resolve();
+            }
 
-            return this._fetchCsrfToken().then(sToken => {
+            return this._fetchCsrfToken().then(function (sToken) {
                 const oModel = this.getView().getModel("wizard");
                 const aItems = oModel.getProperty(`/${sEntity}`) || [];
                 const sEntityName = this._getEntityName(sEntity);
                 const aPromises = [];
 
-                aItems.forEach((item, iIndex) => {
-                    if (item.__state === "deleted") return;
+                aItems.forEach(function (item, iIndex) {
+                    if (item.__state === "deleted") {
+                        return;
+                    }
 
                     if (!item.ID || item.__state === "new") {
-                        const oBody = this._cleanItem({ ...item, profile_ID: this._profileId });
+                        const oBody = this._cleanItem(Object.assign({}, item, { profile_ID: this._profileId }));
                         aPromises.push(
                             fetch(`${BASE_URL}/${sEntityName}`, {
                                 method: "POST",
@@ -456,24 +628,26 @@ sap.ui.define([
                                 credentials: "same-origin",
                                 body: JSON.stringify(oBody)
                             })
-                                .then(res => {
+                                .then(function (res) {
                                     if (res.status === 401 || res.status === 403) {
                                         const oError = new Error("No autorizado");
                                         oError.status = res.status;
                                         throw oError;
                                     }
                                     if (!res.ok) {
-                                        return res.text().then(t => { throw new Error(t); });
+                                        return res.text().then(function (t) {
+                                            throw new Error(t);
+                                        });
                                     }
                                     return res.json();
                                 })
-                                .then(data => {
+                                .then(function (data) {
                                     oModel.setProperty(`/${sEntity}/${iIndex}/ID`, data.ID);
                                     oModel.setProperty(`/${sEntity}/${iIndex}/__state`, "saved");
                                 })
                         );
                     } else if (item.__state === "modified") {
-                        const oBody = this._cleanItem({ ...item, profile_ID: this._profileId });
+                        const oBody = this._cleanItem(Object.assign({}, item, { profile_ID: this._profileId }));
                         aPromises.push(
                             fetch(`${BASE_URL}/${sEntityName}/${item.ID}`, {
                                 method: "PATCH",
@@ -484,22 +658,26 @@ sap.ui.define([
                                 credentials: "same-origin",
                                 body: JSON.stringify(oBody)
                             })
-                                .then(res => {
+                                .then(function (res) {
                                     if (res.status === 401 || res.status === 403) {
                                         const oError = new Error("No autorizado");
                                         oError.status = res.status;
                                         throw oError;
                                     }
                                     if (!res.ok) {
-                                        return res.text().then(t => { throw new Error(t); });
+                                        return res.text().then(function (t) {
+                                            throw new Error(t);
+                                        });
                                     }
                                     oModel.setProperty(`/${sEntity}/${iIndex}/__state`, "saved");
                                 })
                         );
                     }
-                });
+                }.bind(this));
 
-                aItems.filter(i => i.__state === "deleted" && i.ID).forEach(item => {
+                aItems.filter(function (i) {
+                    return i.__state === "deleted" && i.ID;
+                }).forEach(function (item) {
                     aPromises.push(
                         fetch(`${BASE_URL}/${sEntityName}/${item.ID}`, {
                             method: "DELETE",
@@ -508,31 +686,35 @@ sap.ui.define([
                             },
                             credentials: "same-origin"
                         })
-                            .then(res => {
+                            .then(function (res) {
                                 if (res.status === 401 || res.status === 403) {
                                     const oError = new Error("No autorizado");
                                     oError.status = res.status;
                                     throw oError;
                                 }
                                 if (!res.ok) {
-                                    return res.text().then(t => { throw new Error(t); });
+                                    return res.text().then(function (t) {
+                                        throw new Error(t);
+                                    });
                                 }
                             })
                     );
                 });
 
-                const aRemaining = aItems.filter(i => i.__state !== "deleted");
+                const aRemaining = aItems.filter(function (i) {
+                    return i.__state !== "deleted";
+                });
                 oModel.setProperty(`/${sEntity}`, aRemaining);
 
                 return Promise.all(aPromises);
-            });
+            }.bind(this));
         },
 
         onAddItem: function (oEvent) {
             const sEntity = oEvent.getSource().data("entity");
             const oModel = this.getView().getModel("wizard");
             const aItems = oModel.getProperty(`/${sEntity}`) || [];
-            const oNew = { ...this._getEmptyItem(sEntity), __state: "new" };
+            const oNew = Object.assign({}, this._getEmptyItem(sEntity), { __state: "new" });
             aItems.push(oNew);
             oModel.setProperty(`/${sEntity}`, aItems);
         },
@@ -542,21 +724,28 @@ sap.ui.define([
             const sPath = oCtx.getPath();
             const aParts = sPath.split("/");
             const sEntity = aParts[1];
-            const iIndex = parseInt(aParts[2]);
+            const iIndex = parseInt(aParts[2], 10);
 
             const oModel = this.getView().getModel("wizard");
             const aItems = oModel.getProperty(`/${sEntity}`);
             const oItem = aItems[iIndex];
 
             MessageBox.confirm("¿Eliminás este item?", {
-                onClose: (sAction) => {
-                    if (sAction !== MessageBox.Action.OK) return;
+                actions: [MessageBox.Action.OK, MessageBox.Action.CANCEL],
+                emphasizedAction: MessageBox.Action.OK,
+                onClose: function (sAction) {
+                    if (sAction !== MessageBox.Action.OK) {
+                        return;
+                    }
+
                     if (oItem.ID) {
                         aItems[iIndex].__state = "deleted";
-                        oModel.setProperty(`/${sEntity}`, aItems.filter(i => i.__state !== "deleted"));
+                        oModel.setProperty(`/${sEntity}`, aItems.filter(function (i) {
+                            return i.__state !== "deleted";
+                        }));
                     } else {
                         aItems.splice(iIndex, 1);
-                        oModel.setProperty(`/${sEntity}`, [...aItems]);
+                        oModel.setProperty(`/${sEntity}`, [].concat(aItems));
                     }
                 }
             });
@@ -564,12 +753,14 @@ sap.ui.define([
 
         onItemChange: function (oEvent) {
             const oCtx = oEvent.getSource().getBindingContext("wizard");
-            if (!oCtx) return;
+            if (!oCtx) {
+                return;
+            }
 
             const sPath = oCtx.getPath();
             const aParts = sPath.split("/");
             const sEntity = aParts[1];
-            const iIndex = parseInt(aParts[2]);
+            const iIndex = parseInt(aParts[2], 10);
 
             const oModel = this.getView().getModel("wizard");
             const oItem = oModel.getProperty(`/${sEntity}/${iIndex}`);
@@ -579,7 +770,7 @@ sap.ui.define([
             }
         },
 
-        onProfileChange: function () { },
+        onProfileChange: function () {},
 
         _getEntityName: function (sKey) {
             const map = {
@@ -596,19 +787,26 @@ sap.ui.define([
         _cleanItem: function (oItem) {
             const oClean = {};
 
-            Object.keys(oItem).forEach(sKey => {
-                if (!sKey.startsWith("@") && sKey !== "__state" && sKey !== "__index") {
+            Object.keys(oItem).forEach(function (sKey) {
+                if (
+                    !sKey.startsWith("@") &&
+                    sKey !== "__state" &&
+                    sKey !== "__index" &&
+                    sKey !== "createdAtFormatted" &&
+                    sKey !== "statusState" &&
+                    sKey !== "statusText"
+                ) {
                     oClean[sKey] = oItem[sKey];
                 }
             });
 
-            ["startDate", "endDate"].forEach(sField => {
+            ["startDate", "endDate"].forEach(function (sField) {
                 if (sField in oClean && (oClean[sField] === "" || oClean[sField] === undefined)) {
                     oClean[sField] = null;
                 }
             });
 
-            ["startYear", "endYear", "issueYear"].forEach(sField => {
+            ["startYear", "endYear", "issueYear"].forEach(function (sField) {
                 if (sField in oClean && (oClean[sField] === "" || oClean[sField] === 0 || oClean[sField] === undefined)) {
                     oClean[sField] = null;
                 }
@@ -626,7 +824,7 @@ sap.ui.define([
                 certifications: { name: "", issuingOrg: "", issueYear: null, credentialUrl: "" },
                 languages: { language: "", proficiency: "" }
             };
-            return { ...map[sEntity] };
+            return Object.assign({}, map[sEntity]);
         }
 
     });

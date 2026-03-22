@@ -729,6 +729,83 @@ body {
     display: block;
 }
 
+/* ─── RECRUITER LEADS / ADMIN WIZARD ──────────────────── */
+
+.recruiterLeadsSection {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.recruiterLeadsHeader {
+    gap: 12px;
+}
+
+.recruiterLeadsHeaderText {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.recruiterLeadsFilterBox {
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.recruiterLeadsTable {
+    width: 100%;
+}
+
+.recruiterLeadRow .sapMText,
+.recruiterLeadRow .sapMObjStatus,
+.recruiterLeadRow .sapMLabel {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.leadActionsBox {
+    gap: 0;
+    width: 100%;
+}
+
+.leadActionsBox .sapMBtn {
+    max-width: 100%;
+}
+
+.leadActionsBox .sapMBtnInner {
+    white-space: nowrap;
+}
+
+.leadStatusBadge .sapMObjStatusText {
+    font-weight: 700;
+}
+
+.leadStatusBadge.sapMObjStatusSuccess {
+    background: #ecfdf3;
+    border: 1px solid #b7ebc6;
+    border-radius: 999px;
+    padding: 4px 10px;
+}
+
+.leadStatusBadge.sapMObjStatusError {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 999px;
+    padding: 4px 10px;
+}
+
+.leadStatusBadge.sapMObjStatusInformation {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    padding: 4px 10px;
+}
+
+.leadStatusBadge.sapMObjStatusWarning {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 999px;
+    padding: 4px 10px;
+}
+
 @media (max-width: 900px) {
     .cvHeroInner.sapMHBox {
         flex-direction: column !important;
@@ -818,5 +895,44 @@ body {
     #gridProjects .sapFGridListItem {
         padding-left: 0 !important;
         padding-right: 0 !important;
+    }
+
+    .recruiterLeadsSection {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    .recruiterLeadsHeader {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .recruiterLeadsFilterBox {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .recruiterLeadsFilterBox .sapMSlt {
+        width: 100% !important;
+        max-width: 100%;
+    }
+
+    .leadActionsBox {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .leadActionsBox .sapMBtn {
+        width: 100%;
+    }
+
+    .leadActionsBox .sapMBtn .sapMBtnInner {
+        width: 100%;
+    }
+
+    .recruiterLeadRow .sapMListTblSubCntRow > .sapMListTblSubCntValBlock,
+    .recruiterLeadRow .sapMListTblSubCntRow > .sapMListTblSubCntSpr {
+        width: 100% !important;
+        display: block !important;
     }
 }
